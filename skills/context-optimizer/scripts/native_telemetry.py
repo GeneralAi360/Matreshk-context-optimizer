@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 """Matreshka Native Context Telemetry.
 
-Independent implementation for local, read-only telemetry. CodeBurn is not
-required. External providers are read from their documented local session files.
+Independent implementation for local, read-only telemetry. Provider data is read from local session files without external optimizer dependencies.
 """
 
 from __future__ import annotations
