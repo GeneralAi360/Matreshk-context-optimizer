@@ -30,6 +30,9 @@ jobs:
       - name: Native telemetry smoke
         shell: bash
         run: python evals/run_native_telemetry_smoke.py
+      - name: Antigravity safe SQLite smoke
+        shell: bash
+        run: python evals/run_antigravity_sqlite_smoke.py
       - name: CodeBurn compatibility adapter smoke
         shell: bash
         run: python evals/run_codeburn_adapter_smoke.py
