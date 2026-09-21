@@ -8,6 +8,7 @@ import json
 import os
 import platform
 import shutil
+import sys
 from pathlib import Path
 from typing import Iterable
 
@@ -24,6 +25,15 @@ SKIP_DIRS = {
     "venv",
     "__pycache__",
 }
+
+def _configure_utf8_stdio() -> None:
+    for stream in (sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, "reconfigure", None)
+        if callable(reconfigure):
+            reconfigure(encoding="utf-8")
+
+
+_configure_utf8_stdio()
 
 INSTRUCTION_NAMES = {"AGENTS.md", "CLAUDE.md", "GEMINI.md"}
 PROJECT_SKILL_ROOTS = (

@@ -1,0 +1,35 @@
+name: Context Optimizer CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python: ['3.11']
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Compile Python
+        shell: bash
+        run: |
+          python -m compileall -q skills/context-optimizer/scripts evals
+      - name: Static audit smoke
+        shell: bash
+        run: python evals/run_static_audit_smoke.py
+      - name: CodeBurn adapter smoke
+        shell: bash
+        run: python evals/run_codeburn_adapter_smoke.py
+      - name: Gate 5-6 smoke
+        shell: bash
+        run: python evals/run_gate5_6_smoke.py
