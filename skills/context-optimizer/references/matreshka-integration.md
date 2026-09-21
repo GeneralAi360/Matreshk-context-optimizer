@@ -1,77 +1,70 @@
 # Интеграция с Matreshka Agent
 
-## Граница ответственности
+## Роли
 
-Matreshka Agent отвечает за orchestration разработки. Context Optimizer остаётся отдельным reusable skill/repository и передаёт только компактную проекцию состояния.
+Matreshka Agent управляет процессом разработки. Context Optimizer остаётся отдельным peer skill и передаёт контроллеру только компактную проекцию.
 
-Context Optimizer отвечает за измерение, диагностику, рекомендации, reversible optimization и verification. Он не заменяет Project Intelligence, Router, task-local context envelopes, static Context Budget guardrails или authority model Matreshka.
+Optimizer отвечает за измерение, диагностику, рекомендации, reversible optimization и verification. Он не расширяет permissions Matreshka.
 
-## Критический invariant
+## Как Matreshka обращается к навыку
 
-**Static context bytes и runtime token usage — разные метрики.** Они никогда не складываются и не конвертируются друг в друга в bridge/dashboard.
+После обнаружения установленного peer skill Matreshka вызывает единый интерфейс:
 
-## Канонический bridge
+~~~bash
+python <context-optimizer-root>/scripts/context_optimizer.py --project <project-root> <command>
+~~~
 
-Bridge строится командой:
+Команды: `start`, `adopt`, `resume`, `check`, `status`, `optimize`.
+
+Matreshka не должна молча скачивать или устанавливать skill. Если peer skill не найден, dashboard показывает «Оптимизатор контекста недоступен», а разработка продолжается без выдуманных измерений.
+
+## Автоматические сценарии
+
+- `NEW_PROJECT` без baseline → `start` до массового implementation fan-out;
+- `EXISTING_PROJECT` без baseline → `adopt` после read-only orientation и до архитектурных изменений;
+- resume после паузы при устаревшем/отсутствующем baseline → `resume`;
+- evidence перегрузки → `check`;
+- пользовательский запрос → `status`, `check` или `optimize`;
+- без нового evidence → не запускать полный аудит.
+
+## Compact bridge
 
 ~~~bash
 python skills/context-optimizer/scripts/matreshka_bridge.py \
   --audit audit.json \
   --runtime runtime.json \
-  --graphify graphify.json \
+  --project-map project-map.json \
   --ledger ledger-summary.json \
   --output context-optimizer-bridge.json
 ~~~
-
-Machine-readable schema: `schemas/matreshka-bridge.schema.json`.
 
 Ключевые поля:
 
 ~~~text
 status
-health + healthBasis
-runtimeMeasurement.value/unit/type/source/semantics
-staticContext.value(bytes)/fileCount
+health / healthBasis
+runtimeMeasurement
+staticContext
 staticRisk
+projectMap
 topFindings[]
 recommendations[]
-graphify.state
-ledger.pendingVerification / rollbackRecommended
+ledger
+trigger
 approvalRequired
 source
 ~~~
 
-## Truthfulness rules
+## Invariants
 
-- Текущий runtime context принимается только из доказанного current-context measurement.
-- CodeBurn optimize `tokensSaved` не может стать runtime context count.
-- Если runtime measurement отсутствует, bridge возвращает UNKNOWN; static bytes остаются отдельным полем.
-- `health=UNKNOWN` не повышается до WARNING/OK по одной эвристике.
-- `APPLIED` change без verification отображается как pending verification.
-- Bridge — projection only и не даёт Matreshka права выполнять mutation.
+- Runtime tokens и static bytes не складываются.
+- Current context отображается только при доказанной семантике.
+- `UNKNOWN` не повышается до числа эвристикой.
+- Bridge — projection only, не разрешение на mutation.
+- Raw telemetry не помещается в always-on controller context.
 
 ## Dashboard
 
-Matreshka может показывать:
+Отдельный раздел/вкладка «Контекст» показывает состояние простыми русскими формулировками: текущий контекст, статические инструкции, карта проекта, проблемы, рекомендации, pending verification, причина последней проверки и необходимость подтверждения.
 
-- Runtime context — только exact/partial measured source;
-- Static instructions — bytes;
-- Context health и basis;
-- top findings/recommendations;
-- Graphify state;
-- Optimization Ledger pending verification/rollback state.
-
-Нельзя показывать static bytes как tokens или превращать рекомендацию optimizer в разрешение на изменение.
-
-## Триггеры вызова
-
-- `CONTEXT_TOO_BROAD`;
-- runtime usage заметно растёт;
-- повторные file/tool reads;
-- oversized ingress;
-- новый большой repository;
-- много global skills/MCP;
-- frequent compaction;
-- перед длинным development run;
-- после изменения AI tooling;
-- после APPLY для обязательного re-measure/verify.
+Dashboard ничего не меняет сам и не расширяет полномочия.
