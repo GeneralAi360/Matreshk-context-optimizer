@@ -142,7 +142,8 @@ Acceptance remains: measured context/token cost ↓ при task success >= basel
 - [x] CodeBurn comparison tool как optional test oracle;
 - [x] synthetic multi-provider smoke suite;
 - [ ] parity-check на реальном пользовательском Codex corpus против CodeBurn;
-- [ ] direct safe Antigravity DB/PB decoder без live RPC;
+- [x] direct safe Antigravity SQLite DB decoder без live RPC;
+- [ ] legacy Antigravity `.pb` decoder без live RPC;
 - [ ] Claude cross-file resumed-session dedup hardening;
 - [ ] comparable native provider-measured BEFORE/AFTER production sessions.
 
