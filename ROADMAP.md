@@ -64,7 +64,7 @@
 - [x] metrics and quality separated.
 
 ## Gate 10 — Matreshka Agent Bridge
-**PASS / V0.3 INTEGRATION UPDATE IN PROGRESS**
+**PASS / INTEGRATED**
 - [x] compact bridge;
 - [x] runtime-vs-static separation;
 - [x] top findings/recommendations cap;
@@ -72,8 +72,8 @@
 - [x] trigger projection;
 - [x] ledger pending-verification projection;
 - [x] approval state projection;
-- [ ] Matreshka controller auto-invocation rules v0.3;
-- [ ] dashboard section/tab v0.3.
+- [x] Matreshka controller auto-invocation rules через peer `auto` entrypoint;
+- [x] русскоязычная dashboard section/tab `Контекст`.
 
 ## Gate 11 — Before/After Benchmark
 **HARNESS PASS / PRODUCTION EVIDENCE PENDING**
@@ -85,17 +85,20 @@
 - [ ] comparable provider-measured production before/after sessions.
 
 ## Gate 12 — Commands and Trigger Policy
-**IMPLEMENTED / MATRESHKA WIRING IN PROGRESS**
+**PASS / END-TO-END WIRED**
 - [x] `start`;
 - [x] `adopt`;
 - [x] `resume`;
 - [x] `check`;
 - [x] `status`;
 - [x] `optimize`;
+- [x] `auto` — внутренний entrypoint Matreshka, который сам решает RUN/SKIP;
 - [x] deterministic trigger policy;
 - [x] anti-overhead rule: no full audit on every message;
 - [x] Russian user messages;
-- [ ] end-to-end Matreshka controller smoke.
+- [x] source-qualified baseline snapshots (`snapshotId` / `capturedAt`);
+- [x] `trigger.nextCheck` для dashboard;
+- [x] end-to-end Matreshka controller → real peer skill `auto` smoke;
 
 ## Acceptance
 
