@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import sys
 from pathlib import Path
@@ -114,14 +115,23 @@ def runtime_from_native(payload: dict[str, Any] | None) -> dict[str, Any]:
     return unknown
 
 
-def compact_findings(audit: dict[str, Any], limit: int) -> tuple[list[dict[str, Any]], list[str], bool]:
+def compact_findings(
+    audit: dict[str, Any],
+    limit: int,
+) -> tuple[list[dict[str, Any]], list[str], bool]:
     raw = audit.get("findings")
     if not isinstance(raw, list):
         return [], [], False
 
     def rank(item: dict[str, Any]) -> tuple[int, int]:
-        risk = {"HIGH": 0, "MEDIUM": 1, "LOW": 2, "UNKNOWN": 3}.get(str(item.get("quality_risk")), 3)
-        confidence = {"HIGH": 0, "MEDIUM": 1, "LOW": 2, "UNKNOWN": 3}.get(str(item.get("confidence")), 3)
+        risk = {"HIGH": 0, "MEDIUM": 1, "LOW": 2, "UNKNOWN": 3}.get(
+            str(item.get("quality_risk")),
+            3,
+        )
+        confidence = {"HIGH": 0, "MEDIUM": 1, "LOW": 2, "UNKNOWN": 3}.get(
+            str(item.get("confidence")),
+            3,
+        )
         return risk, confidence
 
     valid = [item for item in raw if isinstance(item, dict)]
@@ -134,18 +144,19 @@ def compact_findings(audit: dict[str, Any], limit: int) -> tuple[list[dict[str, 
         problem = item.get("problem") if isinstance(item.get("problem"), dict) else {}
         proposal = item.get("proposal") if isinstance(item.get("proposal"), dict) else {}
         action = str(proposal.get("action") or "REVIEW")
-        rows.append({
-            "id": str(item.get("finding_id") or ""),
-            "category": str(item.get("category") or "UNKNOWN"),
-            "title": str(problem.get("title") or item.get("category") or "Проверка"),
-            "confidence": str(item.get("confidence") or "UNKNOWN"),
-            "qualityRisk": str(item.get("quality_risk") or "UNKNOWN"),
-            "action": action,
-        })
+        rows.append(
+            {
+                "id": str(item.get("finding_id") or ""),
+                "category": str(item.get("category") or "UNKNOWN"),
+                "title": str(problem.get("title") or item.get("category") or "Проверка"),
+                "confidence": str(item.get("confidence") or "UNKNOWN"),
+                "qualityRisk": str(item.get("quality_risk") or "UNKNOWN"),
+                "action": action,
+            }
+        )
         description = str(proposal.get("description") or "").strip()
-        recommendation = action if not description else f"{action}: {description}"
-        if recommendation not in recommendations:
-            recommendations.append(recommendation)
+        if description and description not in recommendations:
+            recommendations.append(description)
         approval = approval or item.get("approval_required") is True
 
     return rows, recommendations[:limit], approval
@@ -208,6 +219,44 @@ def ledger_compact(payload: dict[str, Any] | None) -> tuple[dict[str, Any], bool
     return result, pending > 0 or rollback > 0
 
 
+def next_check_text(
+    *,
+    trigger_mode: str,
+    project_pressure: str,
+    pending_verification: int,
+    approval_required: bool,
+) -> str:
+    if pending_verification > 0:
+        return "После завершения текущей проверки качества и повторного измерения."
+    if approval_required:
+        return "После подтверждения и применения выбранного изменения — повторно измерить контекст."
+    if project_pressure == "HIGH":
+        return "После следующей крупной задачи или существенного изменения структуры проекта."
+    if trigger_mode in {"NEW_PROJECT_BASELINE", "EXISTING_PROJECT_ADOPTION", "RESUME_RECONCILIATION"}:
+        return "При первом подтверждённом событии перегрузки или после заметного роста проекта."
+    return "При новом событии перегрузки или существенном изменении проекта."
+
+
+def snapshot_id(bridge_without_id: dict[str, Any]) -> str:
+    stable = {
+        "health": bridge_without_id.get("health"),
+        "healthBasis": bridge_without_id.get("healthBasis"),
+        "runtimeMeasurement": bridge_without_id.get("runtimeMeasurement"),
+        "staticContext": bridge_without_id.get("staticContext"),
+        "staticRisk": bridge_without_id.get("staticRisk"),
+        "projectMap": bridge_without_id.get("projectMap"),
+        "topFindings": bridge_without_id.get("topFindings"),
+        "ledger": bridge_without_id.get("ledger"),
+    }
+    encoded = json.dumps(
+        stable,
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode("utf-8")
+    return "CTXSNAP-" + hashlib.sha256(encoded).hexdigest()[:16]
+
+
 def build_bridge(
     audit: dict[str, Any],
     *,
@@ -224,41 +273,58 @@ def build_bridge(
     health = str(summary.get("context_health") or "UNKNOWN")
     if health not in {"OK", "WARNING", "CRITICAL", "UNKNOWN"}:
         health = "UNKNOWN"
+
     static_risk = str(summary.get("static_risk") or "UNKNOWN")
     if static_risk not in {"OK", "WARNING", "CRITICAL", "UNKNOWN"}:
         static_risk = "UNKNOWN"
 
     runtime_measurement = runtime_from_native(runtime)
+    static_state = static_context(audit)
     if runtime_measurement["status"] == "AVAILABLE":
         health_basis = "MEASURED" if health != "UNKNOWN" else "PARTIAL"
-    elif static_context(audit)["fileCount"] > 0:
+    elif static_state["fileCount"] > 0:
         health_basis = "STATIC_ONLY"
     else:
         health_basis = "UNKNOWN"
 
-    findings, recommendations, findings_need_approval = compact_findings(audit, finding_limit)
+    findings, recommendations, findings_need_approval = compact_findings(
+        audit,
+        finding_limit,
+    )
     ledger_state, ledger_needs_approval = ledger_compact(ledger)
+    project_state = project_map_compact(project_map)
 
     trigger_state = {
         "mode": str((trigger or {}).get("mode") or "MANUAL"),
         "reason": str((trigger or {}).get("reason") or "") or None,
         "automatic": bool((trigger or {}).get("automatic") is True),
+        "nextCheck": None,
     }
 
-    return {
-        "schemaVersion": "0.2",
+    approval_required = findings_need_approval or ledger_needs_approval
+    trigger_state["nextCheck"] = next_check_text(
+        trigger_mode=trigger_state["mode"],
+        project_pressure=project_state["pressure"],
+        pending_verification=ledger_state["pendingVerification"],
+        approval_required=approval_required,
+    )
+
+    bridge = {
+        "schemaVersion": "0.3",
+        "snapshotId": None,
+        "capturedAt": audit.get("generated_at"),
         "status": "READY",
         "health": health,
         "healthBasis": health_basis,
         "runtimeMeasurement": runtime_measurement,
-        "staticContext": static_context(audit),
+        "staticContext": static_state,
         "staticRisk": static_risk,
-        "projectMap": project_map_compact(project_map),
+        "projectMap": project_state,
         "topFindings": findings,
         "recommendations": recommendations,
         "ledger": ledger_state,
         "trigger": trigger_state,
-        "approvalRequired": findings_need_approval or ledger_needs_approval,
+        "approvalRequired": approval_required,
         "source": {
             "auditSchemaVersion": audit.get("schema_version"),
             "runtimeSource": "native-telemetry" if runtime else None,
@@ -266,10 +332,14 @@ def build_bridge(
             "ledgerSource": "optimization-ledger" if ledger else None,
         },
     }
+    bridge["snapshotId"] = snapshot_id(bridge)
+    return bridge
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Собрать компактное состояние Context Optimizer для Matreshka Agent")
+    parser = argparse.ArgumentParser(
+        description="Собрать компактное состояние Context Optimizer для Matreshka Agent"
+    )
     parser.add_argument("--audit", required=True)
     parser.add_argument("--runtime")
     parser.add_argument("--project-map")
@@ -286,9 +356,15 @@ def main() -> int:
         assert audit is not None
         result = build_bridge(
             audit,
-            runtime=load_object(Path(args.runtime).expanduser().resolve()) if args.runtime else None,
-            project_map=load_object(Path(args.project_map).expanduser().resolve()) if args.project_map else None,
-            ledger=load_object(Path(args.ledger).expanduser().resolve()) if args.ledger else None,
+            runtime=load_object(Path(args.runtime).expanduser().resolve())
+            if args.runtime
+            else None,
+            project_map=load_object(Path(args.project_map).expanduser().resolve())
+            if args.project_map
+            else None,
+            ledger=load_object(Path(args.ledger).expanduser().resolve())
+            if args.ledger
+            else None,
             finding_limit=max(1, min(args.finding_limit, 8)),
             trigger={
                 "mode": args.trigger_mode,
@@ -297,7 +373,14 @@ def main() -> int:
             },
         )
     except (BridgeError, AssertionError) as exc:
-        print(json.dumps({"status": "UNAVAILABLE", "error": str(exc)}, ensure_ascii=False, indent=2), file=sys.stderr)
+        print(
+            json.dumps(
+                {"status": "UNAVAILABLE", "error": str(exc)},
+                ensure_ascii=False,
+                indent=2,
+            ),
+            file=sys.stderr,
+        )
         return 2
 
     rendered = json.dumps(result, ensure_ascii=False, indent=2)

@@ -54,13 +54,15 @@ def main() -> int:
         project_map=project_map,
         trigger={"mode": "EXISTING_PROJECT_ADOPTION", "reason": "Первичное подключение", "automatic": True},
     )
-    assert static_bridge["schemaVersion"] == "0.2"
+    assert static_bridge["schemaVersion"] == "0.3"
     assert static_bridge["staticContext"]["value"] == 2000
     assert static_bridge["runtimeMeasurement"]["value"] is None
     assert static_bridge["runtimeMeasurement"]["type"] == "UNKNOWN"
     assert static_bridge["projectMap"]["pressure"] == "MEDIUM"
     assert static_bridge["trigger"]["automatic"] is True
     assert static_bridge["approvalRequired"] is True
+    assert static_bridge["snapshotId"].startswith("CTXSNAP-")
+    assert static_bridge["trigger"]["nextCheck"]
 
     runtime = {
         "engine": "Matreshka Context Telemetry",

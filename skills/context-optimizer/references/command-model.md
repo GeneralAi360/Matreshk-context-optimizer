@@ -11,6 +11,7 @@ resume    продолжение после паузы
 check     событийная проверка
 status    текущее состояние
 optimize  план оптимизации без автоматического применения
+auto      внутренний режим для Matreshka: решить RUN/SKIP по сигналу
 ~~~
 
 Базовый вызов:
@@ -19,11 +20,21 @@ optimize  план оптимизации без автоматического 
 python skills/context-optimizer/scripts/context_optimizer.py --project . <command>
 ~~~
 
+## auto
+
+Matreshka передаёт компактный JSON сигнал через `--signal`. Skill сам вызывает trigger policy и возвращает либо конкретную проверку (`start/adopt/resume/check`), либо `SKIPPED/NO_TRIGGER`.
+
+~~~bash
+python skills/context-optimizer/scripts/context_optimizer.py --project . --signal '{"scenario":"EXISTING_PROJECT","baseline_exists":false}' auto
+~~~
+
+Это единственный рекомендуемый путь для автоматических запусков: Matreshka не дублирует пороги внутри собственного controller-кода.
+
 ## start
 
 Использовать один раз в начале нового проекта после появления project root/первичной структуры и до массовой реализации.
 
-Результат: baseline, static audit, нативная карта проекта, доступная runtime telemetry, compact bridge для dashboard.
+Результат: `baseline_candidate`, static audit, нативная карта проекта, доступная runtime telemetry и compact bridge. `baseline_candidate.snapshot_id` сохраняется контроллером Matreshka при наличии state-write authority.
 
 Пользовательское сообщение: «Контроль контекста подключён. Снят базовый снимок до масштабной реализации.»
 

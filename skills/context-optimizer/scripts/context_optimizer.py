@@ -19,6 +19,7 @@ import audit_extended
 import matreshka_bridge
 import native_telemetry
 import project_map
+import trigger_policy
 from context_telemetry.common import aggregate_usage
 from optimization_ledger import summary as ledger_summary
 
@@ -28,12 +29,17 @@ def detect_provider() -> str | None:
     if (codex_home / "sessions").exists() or (codex_home / "archived_sessions").exists():
         return "codex"
 
-    claude_home = Path(os.environ.get("CLAUDE_CONFIG_DIR", Path.home() / ".claude"))
+    claude_home = Path(
+        os.environ.get("CLAUDE_CONFIG_DIR", Path.home() / ".claude")
+    )
     if (claude_home / "projects").exists():
         return "claude"
 
     gemini = Path.home() / ".gemini"
-    if any((gemini / name).exists() for name in ("antigravity", "antigravity-cli", "antigravity-ide")):
+    if any(
+        (gemini / name).exists()
+        for name in ("antigravity", "antigravity-cli", "antigravity-ide")
+    ):
         return "antigravity"
     return None
 
@@ -47,15 +53,22 @@ def _same_project(cwd: str | None, project: Path) -> bool:
         return False
 
 
-def _filter_runtime(report: dict[str, Any], project: Path) -> dict[str, Any]:
+def _filter_runtime(
+    report: dict[str, Any],
+    project: Path,
+) -> dict[str, Any]:
     sessions = report.get("sessions")
     if not isinstance(sessions, list):
         return report
 
     matched = [
-        session for session in sessions
-        if isinstance(session, dict) and _same_project(
-            session.get("cwd") if isinstance(session.get("cwd"), str) else None,
+        session
+        for session in sessions
+        if isinstance(session, dict)
+        and _same_project(
+            session.get("cwd")
+            if isinstance(session.get("cwd"), str)
+            else None,
             project,
         )
     ]
@@ -67,7 +80,11 @@ def _filter_runtime(report: dict[str, Any], project: Path) -> dict[str, Any]:
     return filtered
 
 
-def collect_runtime(provider: str | None, project: Path, telemetry_root: str | None) -> dict[str, Any] | None:
+def collect_runtime(
+    provider: str | None,
+    project: Path,
+    telemetry_root: str | None,
+) -> dict[str, Any] | None:
     if provider is None:
         return None
 
@@ -91,13 +108,23 @@ def collect_runtime(provider: str | None, project: Path, telemetry_root: str | N
     return _filter_runtime(report, project)
 
 
-def command_message(command: str, bridge: dict[str, Any]) -> str:
+def command_message(
+    command: str,
+    bridge: dict[str, Any],
+) -> str:
     findings = len(bridge.get("topFindings") or [])
     health = bridge.get("health") or "UNKNOWN"
+    health_ru = {
+        "OK": "норма",
+        "WARNING": "требует внимания",
+        "CRITICAL": "критично",
+        "UNKNOWN": "неизвестно",
+    }.get(str(health), "неизвестно")
+
     mapping = {
         "start": (
             "Контроль контекста подключён к новому проекту. "
-            "Снят базовый снимок до масштабной реализации."
+            "Сформирован базовый снимок до масштабной реализации."
         ),
         "adopt": (
             "Существующий проект подключён к контролю контекста. "
@@ -110,11 +137,15 @@ def command_message(command: str, bridge: dict[str, Any]) -> str:
         "check": "Проверка контекста выполнена по текущему состоянию проекта.",
         "status": "Текущее состояние контекста обновлено.",
         "optimize": (
-            "Подготовлен план оптимизации. Никакие изменения не применялись автоматически."
+            "Подготовлен план оптимизации. "
+            "Никакие изменения не применялись автоматически."
         ),
     }
     base = mapping.get(command, "Проверка контекста завершена.")
-    return f"{base} Состояние: {health}. Найдено замечаний: {findings}."
+    return (
+        f"{base} Состояние: {health_ru}. "
+        f"Замечаний в компактном отчёте: {findings}."
+    )
 
 
 def run_command(
@@ -128,7 +159,10 @@ def run_command(
     trigger_reason: str | None,
     trigger_automatic: bool,
 ) -> dict[str, Any]:
-    audit = audit_extended.audit_extended(project, include_global=include_global)
+    audit = audit_extended.audit_extended(
+        project,
+        include_global=include_global,
+    )
     pmap = project_map.build_project_map(project)
     runtime = collect_runtime(provider, project, telemetry_root)
 
@@ -150,13 +184,21 @@ def run_command(
     )
 
     result: dict[str, Any] = {
-        "schema_version": "0.1",
+        "schema_version": "0.3",
         "command": command,
         "project_root": str(project.resolve()),
         "provider": provider,
         "message_ru": command_message(command, bridge),
         "bridge": bridge,
     }
+
+    if command in {"start", "adopt", "resume"}:
+        result["baseline_candidate"] = {
+            "snapshot_id": bridge.get("snapshotId"),
+            "captured_at": bridge.get("capturedAt"),
+            "mode": trigger_mode,
+            "persist_by_controller": True,
+        }
 
     if command == "optimize":
         result["proposals"] = [
@@ -173,39 +215,143 @@ def run_command(
     return result
 
 
+def parse_signal(raw: str | None) -> dict[str, Any]:
+    if raw is None:
+        return {}
+    try:
+        value = json.loads(raw)
+    except json.JSONDecodeError as exc:
+        raise ValueError(f"Некорректный JSON сигнала: {exc}") from exc
+    if not isinstance(value, dict):
+        raise ValueError("Сигнал должен быть JSON object")
+    return value
+
+
+def run_auto(
+    project: Path,
+    *,
+    signal: dict[str, Any],
+    provider: str | None,
+    include_global: bool,
+    telemetry_root: str | None,
+) -> dict[str, Any]:
+    decision = trigger_policy.decide(signal)
+
+    if not decision.get("run"):
+        return {
+            "schema_version": "0.3",
+            "command": "auto",
+            "status": "SKIPPED",
+            "project_root": str(project.resolve()),
+            "decision": decision,
+            "message_ru": (
+                "Дополнительная проверка контекста сейчас не нужна. "
+                "Новых подтверждённых сигналов перегрузки нет."
+            ),
+        }
+
+    command = str(decision.get("command") or "check")
+    result = run_command(
+        command,
+        project,
+        provider=provider,
+        include_global=include_global,
+        telemetry_root=telemetry_root,
+        trigger_mode=str(decision.get("mode") or "PRESSURE_EVENT"),
+        trigger_reason=str(decision.get("reason") or "") or None,
+        trigger_automatic=bool(decision.get("automatic") is True),
+    )
+    result["requested_command"] = "auto"
+    result["decision"] = decision
+    return result
+
+
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Context Optimizer — единая команда")
+    parser = argparse.ArgumentParser(
+        description="Context Optimizer — единая команда"
+    )
     parser.add_argument("--project", default=".")
-    parser.add_argument("--provider", choices=["auto", "codex", "claude", "antigravity", "none"], default="auto")
+    parser.add_argument(
+        "--provider",
+        choices=["auto", "codex", "claude", "antigravity", "none"],
+        default="auto",
+    )
     parser.add_argument("--telemetry-root")
     parser.add_argument("--include-global", action="store_true")
     parser.add_argument("--trigger-mode", default="MANUAL")
     parser.add_argument("--trigger-reason")
     parser.add_argument("--automatic", action="store_true")
+    parser.add_argument(
+        "--signal",
+        help=(
+            "JSON object для внутренней команды auto. "
+            "Используется Matreshka Agent без временного файла."
+        ),
+    )
     parser.add_argument("--output")
 
     sub = parser.add_subparsers(dest="command", required=True)
-    for name in ("start", "adopt", "resume", "check", "status", "optimize"):
+    for name in (
+        "start",
+        "adopt",
+        "resume",
+        "check",
+        "status",
+        "optimize",
+        "auto",
+    ):
         sub.add_parser(name)
 
     args = parser.parse_args()
     project = Path(args.project).expanduser().resolve()
     if not project.exists() or not project.is_dir():
-        print(json.dumps({"status": "ERROR", "error": f"Проект не найден: {project}"}, ensure_ascii=False, indent=2))
+        print(
+            json.dumps(
+                {
+                    "status": "ERROR",
+                    "error": f"Проект не найден: {project}",
+                },
+                ensure_ascii=False,
+                indent=2,
+            )
+        )
         return 2
 
-    provider = detect_provider() if args.provider == "auto" else (None if args.provider == "none" else args.provider)
-
-    result = run_command(
-        args.command,
-        project,
-        provider=provider,
-        include_global=args.include_global,
-        telemetry_root=args.telemetry_root,
-        trigger_mode=args.trigger_mode,
-        trigger_reason=args.trigger_reason,
-        trigger_automatic=args.automatic,
+    provider = (
+        detect_provider()
+        if args.provider == "auto"
+        else (None if args.provider == "none" else args.provider)
     )
+
+    try:
+        if args.command == "auto":
+            result = run_auto(
+                project,
+                signal=parse_signal(args.signal),
+                provider=provider,
+                include_global=args.include_global,
+                telemetry_root=args.telemetry_root,
+            )
+        else:
+            result = run_command(
+                args.command,
+                project,
+                provider=provider,
+                include_global=args.include_global,
+                telemetry_root=args.telemetry_root,
+                trigger_mode=args.trigger_mode,
+                trigger_reason=args.trigger_reason,
+                trigger_automatic=args.automatic,
+            )
+    except ValueError as exc:
+        print(
+            json.dumps(
+                {"status": "ERROR", "error": str(exc)},
+                ensure_ascii=False,
+                indent=2,
+            )
+        )
+        return 2
 
     rendered = json.dumps(result, ensure_ascii=False, indent=2)
     if args.output:

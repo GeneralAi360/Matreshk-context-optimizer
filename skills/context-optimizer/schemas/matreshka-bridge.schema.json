@@ -6,6 +6,8 @@
   "additionalProperties": false,
   "required": [
     "schemaVersion",
+    "snapshotId",
+    "capturedAt",
     "status",
     "health",
     "healthBasis",
@@ -22,7 +24,7 @@
   ],
   "properties": {
     "schemaVersion": {
-      "const": "0.2"
+      "const": "0.3"
     },
     "status": {
       "type": "string",
@@ -267,7 +269,8 @@
       "required": [
         "mode",
         "reason",
-        "automatic"
+        "automatic",
+        "nextCheck"
       ],
       "properties": {
         "mode": {
@@ -281,6 +284,12 @@
         },
         "automatic": {
           "type": "boolean"
+        },
+        "nextCheck": {
+          "type": [
+            "string",
+            "null"
+          ]
         }
       }
     },
@@ -322,6 +331,16 @@
           ]
         }
       }
+    },
+    "snapshotId": {
+      "type": "string",
+      "pattern": "^CTXSNAP-[a-f0-9]{16}$"
+    },
+    "capturedAt": {
+      "type": [
+        "string",
+        "null"
+      ]
     }
   }
 }
