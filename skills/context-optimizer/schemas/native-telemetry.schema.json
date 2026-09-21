@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://generalai360.github.io/matreshka-context-optimizer/schemas/native-telemetry.schema.json",
+  "title": "Matreshka Native Context Telemetry Report",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "engine",
+    "engine_version",
+    "mode",
+    "provider",
+    "usage",
+    "sessions",
+    "findings",
+    "safety"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.2"
+    },
+    "engine": {
+      "const": "Matreshka Context Telemetry"
+    },
+    "engine_version": {
+      "type": "string"
+    },
+    "mode": {
+      "const": "READ_ONLY"
+    },
+    "provider": {
+      "type": "string",
+      "enum": [
+        "codex",
+        "claude",
+        "antigravity"
+      ]
+    },
+    "source_root": {
+      "type": "string"
+    },
+    "usage": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "sessions": {
+      "type": "array",
+      "items": {
+        "$ref": "native-telemetry-session.schema.json"
+      }
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "safety": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "network",
+        "process_probe",
+        "rpc"
+      ],
+      "properties": {
+        "network": {
+          "const": false
+        },
+        "process_probe": {
+          "const": false
+        },
+        "rpc": {
+          "const": false
+        }
+      }
+    }
+  }
+}
