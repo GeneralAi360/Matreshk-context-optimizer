@@ -206,6 +206,35 @@ def collect_antigravity(args: argparse.Namespace) -> dict[str, Any]:
             },
         }
 
+    sessions: list[dict[str, Any]] = []
+    sqlite_errors: list[dict[str, str]] = []
+    pb_sources = 0
+    for source in discovered:
+        if source.get("format") == "db":
+            try:
+                sessions.append(
+                    antigravity.parse_sqlite_file(
+                        Path(str(source["path"])),
+                        project_hint=str(source.get("project") or "antigravity"),
+                    )
+                )
+            except (OSError, RuntimeError, ValueError) as exc:
+                sqlite_errors.append({"path": str(source.get("path")), "error": str(exc)})
+        elif source.get("format") == "pb":
+            pb_sources += 1
+
+    measured_sessions = [
+        session for session in sessions
+        if session.get("usage", {}).get("measurement_type") == "PROVIDER_MEASURED"
+    ]
+    capability = (
+        "SAFE_SQLITE_NATIVE"
+        if measured_sessions and pb_sources == 0 and not sqlite_errors
+        else "SAFE_SQLITE_PARTIAL"
+        if measured_sessions
+        else "STATIC_DISCOVERY_ONLY"
+    )
+
     return {
         "schema_version": SCHEMA_VERSION,
         "engine": ENGINE_NAME,
@@ -215,18 +244,17 @@ def collect_antigravity(args: argparse.Namespace) -> dict[str, Any]:
         "source_root": str(home),
         "discovered_sources": len(discovered),
         "static_sources": discovered,
-        "usage": {
-            "measurement_type": "UNKNOWN",
-            "measured_sessions": 0,
-            "unknown_sessions": len(discovered),
-        },
-        "sessions": [],
-        "findings": [],
-        "capability": "STATIC_DISCOVERY_ONLY",
+        "usage": aggregate_usage(sessions),
+        "sessions": sessions,
+        "findings": aggregate_findings(sessions),
+        "capability": capability,
+        "sqlite_errors": sqlite_errors,
+        "undecoded_pb_sources": pb_sources,
         "limitation": (
-            "Native v0.2 intentionally does not inspect live Antigravity processes, "
-            "disable TLS verification or call local RPC. Provide an existing statusline "
-            "JSONL for measured telemetry; direct DB/PB decoding is a later capability."
+            None
+            if capability == "SAFE_SQLITE_NATIVE"
+            else "SQLite gen_metadata is decoded read-only. Older .pb sources remain "
+                 "static-only; live process/RPC probing is intentionally disabled."
         ),
         "safety": {
             "network": False,
@@ -234,6 +262,7 @@ def collect_antigravity(args: argparse.Namespace) -> dict[str, Any]:
             "rpc": False,
             "hook_install": False,
             "conversation_db_written": False,
+            "sqlite_mode": "READ_ONLY",
         },
     }
 
