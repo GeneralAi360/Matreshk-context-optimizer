@@ -95,10 +95,15 @@ def runtime_from_context_payload(payload: dict[str, Any] | None) -> dict[str, An
                     and measurement_type == "PROVIDER_MEASURED"
                 ):
                     raw_semantics = str(context.get("reported_context_semantics") or "")
+                    if provider == "codex":
+                        current_semantics = {"", "CURRENT_CONTEXT"}
+                    elif provider == "antigravity":
+                        current_semantics = {"", "CURRENT_CONTEXT", "STATUSLINE_CURRENT_USAGE"}
+                    else:
+                        current_semantics = set()
                     semantics = (
                         "CURRENT_CONTEXT"
-                        if provider in {"codex", "antigravity"}
-                        and raw_semantics in {"", "STATUSLINE_CURRENT_USAGE"}
+                        if raw_semantics in current_semantics
                         else "OBSERVED_SUBSET"
                     )
                     return {
