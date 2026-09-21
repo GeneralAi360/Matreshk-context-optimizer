@@ -5,8 +5,18 @@ from __future__ import annotations
 
 import json
 import re
+import sys
 from pathlib import Path
 from typing import Any
+
+def _configure_utf8_stdio() -> None:
+    for stream in (sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, "reconfigure", None)
+        if callable(reconfigure):
+            reconfigure(encoding="utf-8")
+
+
+_configure_utf8_stdio()
 
 WORD_RE = re.compile(r"[A-Za-zА-Яа-яЁё0-9_-]{3,}")
 
