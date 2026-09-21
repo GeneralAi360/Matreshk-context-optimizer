@@ -33,7 +33,7 @@ MEASURE → DIAGNOSE → CLASSIFY → RECOMMEND
 
 - **Codex** — native discovery/parsing, provider token counters, current-context semantics, file/tool/skill/MCP events и byte-level context composition.
 - **Claude Code** — native JSONL parsing с provider-measured usage; cross-file resume dedup пока считается ограничением.
-- **Antigravity** — безопасный partial mode: static discovery и optional parsing уже существующего statusline JSONL без live-process probe/RPC/hooks.
+- **Antigravity** — безопасный native SQLite mode + partial legacy PB: read-only `.db` decoding и optional existing-statusline parsing без live-process probe/RPC/hooks.
 
 По умолчанию native telemetry не использует сеть, не сканирует процессы, не подключается к локальным RPC и не пишет session files. Cache выключен, пока явно не указан `--use-cache`.
 
