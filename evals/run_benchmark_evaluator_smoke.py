@@ -24,7 +24,7 @@ def run(tokens_before, tokens_after, *, measurement_type="PROVIDER_MEASURED", re
             "value": tokens_before,
             "metric": "TOTAL_RUN_TOKENS",
             "measurement_type": measurement_type,
-            "source": "codeburn",
+            "source": "native-telemetry",
         },
         "quality": {
             "task_success": True,
