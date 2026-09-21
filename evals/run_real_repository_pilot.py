@@ -1,9 +1,5 @@
 #!/usr/bin/env python3
-"""Real-repository read-only pilot for Context Optimizer.
-
-Designed to run against a checked-out real project (currently Matreshka Agent)
-and prove that the audit/Graphify status/bridge path leaves the target untouched.
-"""
+"""Real-repository read-only pilot for Context Optimizer."""
 
 from __future__ import annotations
 
@@ -17,8 +13,8 @@ SCRIPT_DIR = Path(__file__).resolve().parents[1] / "skills" / "context-optimizer
 sys.path.insert(0, str(SCRIPT_DIR))
 
 import audit_extended
-import graphify_adapter
 import matreshka_bridge
+import project_map
 
 
 SKIP_NAMES = {".git", ".context-optimizer", "__pycache__"}
@@ -40,8 +36,8 @@ def run_pilot(root: Path) -> dict:
     before = file_snapshot(root)
 
     audit = audit_extended.audit_extended(root, include_global=False)
-    graph = graphify_adapter.build_status(root, platform="codex")
-    bridge = matreshka_bridge.build_bridge(audit, graphify=graph)
+    pmap = project_map.build_project_map(root)
+    bridge = matreshka_bridge.build_bridge(audit, project_map=pmap)
 
     after = file_snapshot(root)
     unchanged = before == after
@@ -55,12 +51,12 @@ def run_pilot(root: Path) -> dict:
         "project_skills_discovered": isinstance(skills, list) and len(skills) > 0,
         "runtime_not_fabricated": runtime.get("value") is None and runtime.get("type") == "UNKNOWN",
         "static_context_unit_is_bytes": bridge["staticContext"]["unit"] == "bytes",
-        "graphify_status_is_non_mutating": graph.get("adapter_mode") == "READ_ONLY",
+        "native_project_map_ready": bridge["projectMap"]["state"] == "READY",
         "optimizer_state_not_created": not (root / ".context-optimizer").exists(),
     }
 
     return {
-        "schema_version": "0.1",
+        "schema_version": "0.2",
         "pilot": "REAL_REPOSITORY_READ_ONLY",
         "project_root": str(root.resolve()),
         "checks": checks,
@@ -71,16 +67,17 @@ def run_pilot(root: Path) -> dict:
             "findings": audit.get("summary", {}).get("finding_count"),
             "static_risk": audit.get("summary", {}).get("static_risk"),
             "runtime_measurement_state": bridge["runtimeMeasurement"]["status"],
-            "graphify_recommendation": graph.get("recommendation", {}).get("action"),
-            "graphify_evidence_basis": graph.get("recommendation", {}).get("basis"),
+            "project_files": pmap.get("file_count"),
+            "project_areas": pmap.get("area_count"),
+            "navigation_pressure": pmap.get("navigation_pressure"),
         },
         "runtime_savings_verdict": "UNVERIFIED",
-        "runtime_savings_reason": "Пилот проверяет реальный repository read-only path, но не имеет сопоставимых provider-measured before/after agent sessions.",
+        "runtime_savings_reason": "Пилот проверяет read-only интеграцию; для runtime savings нужны сопоставимые provider-measured before/after сессии.",
     }
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Run real-repository read-only Context Optimizer pilot")
+    parser = argparse.ArgumentParser(description="Read-only пилот Context Optimizer на реальном репозитории")
     parser.add_argument("--project", required=True)
     parser.add_argument("--output")
     args = parser.parse_args()
@@ -98,9 +95,7 @@ def main() -> int:
     else:
         print(rendered)
 
-    if not result["pass"]:
-        return 1
-    return 0
+    return 0 if result["pass"] else 1
 
 
 if __name__ == "__main__":

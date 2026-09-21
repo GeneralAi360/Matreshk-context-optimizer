@@ -33,8 +33,8 @@ FINDING
 
 - проверить установленные skills;
 - прочитать конфигурацию;
-- запустить read-only CodeBurn report;
-- проверить наличие graphify-out/graph.json.
+- запустить read-only native telemetry;
+- построить нативную карту проекта.
 
 Не требует отдельного destructive approval.
 
@@ -64,7 +64,7 @@ FINDING
 - менять глобальную конфигурацию;
 - устанавливать внешний package;
 - переписывать большой instruction file;
-- удалять graph/cache.
+- удалять runtime cache.
 
 Всегда требует явного approval.
 

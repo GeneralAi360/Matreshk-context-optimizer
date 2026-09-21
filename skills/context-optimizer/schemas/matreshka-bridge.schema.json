@@ -12,16 +12,17 @@
     "runtimeMeasurement",
     "staticContext",
     "staticRisk",
+    "projectMap",
     "topFindings",
     "recommendations",
-    "graphify",
     "ledger",
+    "trigger",
     "approvalRequired",
     "source"
   ],
   "properties": {
     "schemaVersion": {
-      "const": "0.1"
+      "const": "0.2"
     },
     "status": {
       "type": "string",
@@ -127,7 +128,7 @@
           "const": "bytes"
         },
         "source": {
-          "const": "instruction-file inventory"
+          "const": "inventory-instructions"
         },
         "fileCount": {
           "type": "integer",
@@ -143,6 +144,49 @@
         "CRITICAL",
         "UNKNOWN"
       ]
+    },
+    "projectMap": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "pressure",
+        "files",
+        "areas",
+        "reason"
+      ],
+      "properties": {
+        "state": {
+          "type": "string",
+          "enum": [
+            "READY",
+            "UNKNOWN"
+          ]
+        },
+        "pressure": {
+          "type": "string",
+          "enum": [
+            "LOW",
+            "MEDIUM",
+            "HIGH",
+            "UNKNOWN"
+          ]
+        },
+        "files": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "areas": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "reason": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
     },
     "topFindings": {
       "type": "array",
@@ -187,33 +231,6 @@
         "type": "string"
       }
     },
-    "graphify": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "state",
-        "reason"
-      ],
-      "properties": {
-        "state": {
-          "type": "string",
-          "enum": [
-            "NOT_NEEDED",
-            "RECOMMENDED",
-            "INSTALLED",
-            "READY",
-            "STALE",
-            "UNKNOWN"
-          ]
-        },
-        "reason": {
-          "type": [
-            "string",
-            "null"
-          ]
-        }
-      }
-    },
     "ledger": {
       "type": "object",
       "additionalProperties": false,
@@ -244,6 +261,29 @@
         }
       }
     },
+    "trigger": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mode",
+        "reason",
+        "automatic"
+      ],
+      "properties": {
+        "mode": {
+          "type": "string"
+        },
+        "reason": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "automatic": {
+          "type": "boolean"
+        }
+      }
+    },
     "approvalRequired": {
       "type": "boolean"
     },
@@ -253,7 +293,7 @@
       "required": [
         "auditSchemaVersion",
         "runtimeSource",
-        "graphifySource",
+        "projectMapSource",
         "ledgerSource"
       ],
       "properties": {
@@ -269,7 +309,7 @@
             "null"
           ]
         },
-        "graphifySource": {
+        "projectMapSource": {
           "type": [
             "string",
             "null"

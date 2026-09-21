@@ -44,7 +44,7 @@ python evals/evaluate_before_after.py --before before.json --after after.json
 - package skills реально обнаружены;
 - runtime tokens не выдуманы;
 - static context остаётся bytes;
-- Graphify status остаётся read-only;
+- нативная карта проекта строится read-only;
 - `.context-optimizer` state не создаётся read-only аудитом.
 
 Такой pilot подтверждает интеграционную безопасность, но **не** доказывает runtime savings. Для runtime verdict нужны provider-measured before/after agent sessions.

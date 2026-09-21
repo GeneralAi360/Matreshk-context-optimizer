@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build a compact, truthful Context Optimizer bridge for Matreshka Agent."""
+"""Компактный bridge между Context Optimizer и Matreshka Agent."""
 
 from __future__ import annotations
 
@@ -57,12 +57,12 @@ def static_context(audit: dict[str, Any]) -> dict[str, Any]:
     return {
         "value": total,
         "unit": "bytes",
-        "source": "instruction-file inventory",
+        "source": "inventory-instructions",
         "fileCount": count,
     }
 
 
-def runtime_from_context_payload(payload: dict[str, Any] | None) -> dict[str, Any]:
+def runtime_from_native(payload: dict[str, Any] | None) -> dict[str, Any]:
     unknown = {
         "status": "UNKNOWN",
         "value": None,
@@ -71,85 +71,46 @@ def runtime_from_context_payload(payload: dict[str, Any] | None) -> dict[str, An
         "source": None,
         "semantics": "UNKNOWN",
     }
-    if not payload:
+    if not payload or payload.get("engine") != "Matreshka Context Telemetry":
         return unknown
 
-    # Native Matreshka Context Telemetry. Only session context fields with
-    # PROVIDER_MEASURED provenance are eligible; aggregate spend is never
-    # reinterpreted as current context.
-    if payload.get("engine") == "Matreshka Context Telemetry":
-        provider = str(payload.get("provider") or "unknown")
-        sessions = payload.get("sessions")
-        if isinstance(sessions, list):
-            for session in sessions:
-                if not isinstance(session, dict):
-                    continue
-                context = session.get("context")
-                if not isinstance(context, dict):
-                    continue
-                value = context.get("reported_context_tokens")
-                measurement_type = context.get("reported_context_measurement_type")
-                if (
-                    isinstance(value, (int, float))
-                    and value >= 0
-                    and measurement_type == "PROVIDER_MEASURED"
-                ):
-                    raw_semantics = str(context.get("reported_context_semantics") or "")
-                    if provider == "codex":
-                        current_semantics = {"", "CURRENT_CONTEXT"}
-                    elif provider == "antigravity":
-                        current_semantics = {"", "CURRENT_CONTEXT", "STATUSLINE_CURRENT_USAGE"}
-                    else:
-                        current_semantics = set()
-                    semantics = (
-                        "CURRENT_CONTEXT"
-                        if raw_semantics in current_semantics
-                        else "OBSERVED_SUBSET"
-                    )
-                    return {
-                        "status": "AVAILABLE" if semantics == "CURRENT_CONTEXT" else "PARTIAL",
-                        "value": value,
-                        "unit": "tokens",
-                        "type": "PROVIDER_MEASURED",
-                        "source": f"matreshka-native:{provider}",
-                        "semantics": semantics,
-                    }
+    provider = str(payload.get("provider") or "unknown")
+    sessions = payload.get("sessions")
+    if not isinstance(sessions, list):
+        return unknown
 
-    # Output from analyze_context_tree.py.
-    measurements = payload.get("measurements")
-    if isinstance(measurements, list):
-        for item in measurements:
-            if not isinstance(item, dict):
-                continue
-            if (
-                item.get("measurement_type") == "PROVIDER_MEASURED"
-                and item.get("unit") == "tokens"
-                and item.get("source") == "codeburn-context"
-                and "reported.context" in str(item.get("method") or "")
-                and isinstance(item.get("value"), (int, float))
-            ):
-                return {
-                    "status": "AVAILABLE",
-                    "value": item["value"],
-                    "unit": "tokens",
-                    "type": "PROVIDER_MEASURED",
-                    "source": "codeburn-context",
-                    "semantics": "CURRENT_CONTEXT",
-                }
+    for session in sessions:
+        if not isinstance(session, dict):
+            continue
+        context = session.get("context")
+        if not isinstance(context, dict):
+            continue
+        value = context.get("reported_context_tokens")
+        measurement_type = context.get("reported_context_measurement_type")
+        if not (
+            isinstance(value, (int, float))
+            and value >= 0
+            and measurement_type == "PROVIDER_MEASURED"
+        ):
+            continue
 
-    # Raw/adapter CodeBurn context tree.
-    raw = payload.get("raw") if isinstance(payload.get("raw"), dict) else payload
-    reported = raw.get("reported") if isinstance(raw, dict) else None
-    if isinstance(reported, dict) and isinstance(reported.get("context"), (int, float)):
+        raw_semantics = str(context.get("reported_context_semantics") or "")
+        if provider == "codex":
+            current_semantics = {"", "CURRENT_CONTEXT"}
+        elif provider == "antigravity":
+            current_semantics = {"", "CURRENT_CONTEXT", "STATUSLINE_CURRENT_USAGE"}
+        else:
+            current_semantics = set()
+
+        semantics = "CURRENT_CONTEXT" if raw_semantics in current_semantics else "OBSERVED_SUBSET"
         return {
-            "status": "AVAILABLE",
-            "value": reported["context"],
+            "status": "AVAILABLE" if semantics == "CURRENT_CONTEXT" else "PARTIAL",
+            "value": value,
             "unit": "tokens",
             "type": "PROVIDER_MEASURED",
-            "source": "codeburn-context",
-            "semantics": "CURRENT_CONTEXT",
+            "source": f"native:{provider}",
+            "semantics": semantics,
         }
-
     return unknown
 
 
@@ -173,16 +134,14 @@ def compact_findings(audit: dict[str, Any], limit: int) -> tuple[list[dict[str, 
         problem = item.get("problem") if isinstance(item.get("problem"), dict) else {}
         proposal = item.get("proposal") if isinstance(item.get("proposal"), dict) else {}
         action = str(proposal.get("action") or "REVIEW")
-        rows.append(
-            {
-                "id": str(item.get("finding_id") or ""),
-                "category": str(item.get("category") or "UNKNOWN"),
-                "title": str(problem.get("title") or item.get("category") or "Finding"),
-                "confidence": str(item.get("confidence") or "UNKNOWN"),
-                "qualityRisk": str(item.get("quality_risk") or "UNKNOWN"),
-                "action": action,
-            }
-        )
+        rows.append({
+            "id": str(item.get("finding_id") or ""),
+            "category": str(item.get("category") or "UNKNOWN"),
+            "title": str(problem.get("title") or item.get("category") or "Проверка"),
+            "confidence": str(item.get("confidence") or "UNKNOWN"),
+            "qualityRisk": str(item.get("quality_risk") or "UNKNOWN"),
+            "action": action,
+        })
         description = str(proposal.get("description") or "").strip()
         recommendation = action if not description else f"{action}: {description}"
         if recommendation not in recommendations:
@@ -192,35 +151,24 @@ def compact_findings(audit: dict[str, Any], limit: int) -> tuple[list[dict[str, 
     return rows, recommendations[:limit], approval
 
 
-def graphify_compact(payload: dict[str, Any] | None) -> dict[str, Any]:
+def project_map_compact(payload: dict[str, Any] | None) -> dict[str, Any]:
     if not payload:
-        return {"state": "UNKNOWN", "reason": None}
-
-    recommendation = payload.get("recommendation")
-    action = recommendation.get("action") if isinstance(recommendation, dict) else None
-    reason = None
-    if isinstance(recommendation, dict):
-        reasons = recommendation.get("reasons")
-        if isinstance(reasons, list) and reasons:
-            reason = "; ".join(str(x) for x in reasons[:3])
-
-    mapping = {
-        "USE_EXISTING_GRAPH": "READY",
-        "UPDATE_RECOMMENDED": "STALE",
-        "BUILD_RECOMMENDED": "RECOMMENDED",
-        "INSTALL_RECOMMENDED": "RECOMMENDED",
-        "NOT_NEEDED_BY_CURRENT_EVIDENCE": "NOT_NEEDED",
+        return {
+            "state": "UNKNOWN",
+            "pressure": "UNKNOWN",
+            "files": 0,
+            "areas": 0,
+            "reason": None,
+        }
+    state = str(payload.get("state") or "UNKNOWN")
+    pressure = str(payload.get("navigation_pressure") or "UNKNOWN")
+    return {
+        "state": state if state in {"READY", "UNKNOWN"} else "UNKNOWN",
+        "pressure": pressure if pressure in {"LOW", "MEDIUM", "HIGH", "UNKNOWN"} else "UNKNOWN",
+        "files": int(payload.get("file_count") or 0),
+        "areas": int(payload.get("area_count") or 0),
+        "reason": str(payload.get("reason") or "") or None,
     }
-    if action in mapping:
-        return {"state": mapping[action], "reason": reason}
-
-    install = payload.get("project_install")
-    graph = payload.get("graph")
-    if isinstance(graph, dict) and graph.get("exists") is True:
-        return {"state": "READY", "reason": "graphify-out/graph.json обнаружен"}
-    if isinstance(install, dict) and install.get("state") == "INSTALLED":
-        return {"state": "INSTALLED", "reason": "project-scoped Graphify skill обнаружен"}
-    return {"state": "UNKNOWN", "reason": reason}
 
 
 def ledger_compact(payload: dict[str, Any] | None) -> tuple[dict[str, Any], bool]:
@@ -264,9 +212,10 @@ def build_bridge(
     audit: dict[str, Any],
     *,
     runtime: dict[str, Any] | None = None,
-    graphify: dict[str, Any] | None = None,
+    project_map: dict[str, Any] | None = None,
     ledger: dict[str, Any] | None = None,
     finding_limit: int = 5,
+    trigger: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     if audit.get("mode") != "READ_ONLY":
         raise BridgeError("Bridge принимает только read-only audit report")
@@ -279,7 +228,7 @@ def build_bridge(
     if static_risk not in {"OK", "WARNING", "CRITICAL", "UNKNOWN"}:
         static_risk = "UNKNOWN"
 
-    runtime_measurement = runtime_from_context_payload(runtime)
+    runtime_measurement = runtime_from_native(runtime)
     if runtime_measurement["status"] == "AVAILABLE":
         health_basis = "MEASURED" if health != "UNKNOWN" else "PARTIAL"
     elif static_context(audit)["fileCount"] > 0:
@@ -289,36 +238,45 @@ def build_bridge(
 
     findings, recommendations, findings_need_approval = compact_findings(audit, finding_limit)
     ledger_state, ledger_needs_approval = ledger_compact(ledger)
-    graph_state = graphify_compact(graphify)
+
+    trigger_state = {
+        "mode": str((trigger or {}).get("mode") or "MANUAL"),
+        "reason": str((trigger or {}).get("reason") or "") or None,
+        "automatic": bool((trigger or {}).get("automatic") is True),
+    }
 
     return {
-        "schemaVersion": "0.1",
+        "schemaVersion": "0.2",
         "status": "READY",
         "health": health,
         "healthBasis": health_basis,
         "runtimeMeasurement": runtime_measurement,
         "staticContext": static_context(audit),
         "staticRisk": static_risk,
+        "projectMap": project_map_compact(project_map),
         "topFindings": findings,
         "recommendations": recommendations,
-        "graphify": graph_state,
         "ledger": ledger_state,
+        "trigger": trigger_state,
         "approvalRequired": findings_need_approval or ledger_needs_approval,
         "source": {
             "auditSchemaVersion": audit.get("schema_version"),
-            "runtimeSource": "provided-runtime-json" if runtime else None,
-            "graphifySource": "provided-graphify-json" if graphify else None,
-            "ledgerSource": "provided-ledger-summary" if ledger else None,
+            "runtimeSource": "native-telemetry" if runtime else None,
+            "projectMapSource": "native-project-map" if project_map else None,
+            "ledgerSource": "optimization-ledger" if ledger else None,
         },
     }
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Build compact Matreshka Context Optimizer bridge")
+    parser = argparse.ArgumentParser(description="Собрать компактное состояние Context Optimizer для Matreshka Agent")
     parser.add_argument("--audit", required=True)
     parser.add_argument("--runtime")
-    parser.add_argument("--graphify")
+    parser.add_argument("--project-map")
     parser.add_argument("--ledger")
+    parser.add_argument("--trigger-mode", default="MANUAL")
+    parser.add_argument("--trigger-reason")
+    parser.add_argument("--trigger-automatic", action="store_true")
     parser.add_argument("--finding-limit", type=int, default=5)
     parser.add_argument("--output")
     args = parser.parse_args()
@@ -329,9 +287,14 @@ def main() -> int:
         result = build_bridge(
             audit,
             runtime=load_object(Path(args.runtime).expanduser().resolve()) if args.runtime else None,
-            graphify=load_object(Path(args.graphify).expanduser().resolve()) if args.graphify else None,
+            project_map=load_object(Path(args.project_map).expanduser().resolve()) if args.project_map else None,
             ledger=load_object(Path(args.ledger).expanduser().resolve()) if args.ledger else None,
             finding_limit=max(1, min(args.finding_limit, 8)),
+            trigger={
+                "mode": args.trigger_mode,
+                "reason": args.trigger_reason,
+                "automatic": args.trigger_automatic,
+            },
         )
     except (BridgeError, AssertionError) as exc:
         print(json.dumps({"status": "UNAVAILABLE", "error": str(exc)}, ensure_ascii=False, indent=2), file=sys.stderr)
@@ -339,7 +302,9 @@ def main() -> int:
 
     rendered = json.dumps(result, ensure_ascii=False, indent=2)
     if args.output:
-        Path(args.output).expanduser().resolve().write_text(rendered + "\n", encoding="utf-8")
+        out = Path(args.output).expanduser().resolve()
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_text(rendered + "\n", encoding="utf-8")
     else:
         print(rendered)
     return 0

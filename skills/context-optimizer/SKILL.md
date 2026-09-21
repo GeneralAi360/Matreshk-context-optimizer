@@ -1,110 +1,259 @@
 ---
 name: context-optimizer
-description: Использовать, когда нужно измерить и диагностировать расход контекста или токенов, проверить project instructions, skills, MCP/tools, большие tool outputs или навигацию по репозиторию и подготовить безопасные рекомендации без потери качества.
+description: Использовать, когда нужно измерить и уменьшить перегрузку контекста AI-агента, проверить инструкции, skills, MCP/tools, большие результаты инструментов, повторные чтения файлов, навигацию по проекту и безопасно предложить оптимизацию без потери качества.
 ---
 
 # Оптимизатор контекста
 
 ## Назначение
 
-Навык проводит аудит контекста AI-агента и помогает уменьшать ненужный overhead без подмены измерений оценками.
+Навык помогает AI-агенту понимать, **что именно перегружает контекст**, когда это реально мешает работе и какие изменения можно безопасно предложить.
 
-Режим `v0.2` по умолчанию — **READ_ONLY**. Reversible mutation разрешён только через отдельный approved `CHG-xxx` после dry-run.
+Основной принцип:
 
-## Основной запуск
+~~~text
+ИЗМЕРИТЬ
+→ НАЙТИ ПРИЧИНУ
+→ КЛАССИФИЦИРОВАТЬ
+→ ПРЕДЛОЖИТЬ
+→ ПОЛУЧИТЬ ПОДТВЕРЖДЕНИЕ
+→ ИЗМЕНИТЬ
+→ ПЕРЕИЗМЕРИТЬ
+→ ПРОВЕРИТЬ КАЧЕСТВО
+→ ОСТАВИТЬ / ОТКАТИТЬ
+~~~
 
-1. Определи project root и фактический harness.
-2. Проверь capabilities, а не предполагай их по названию платформы.
-3. Запусти сводный read-only аудит:
-   ~~~bash
-   python skills/context-optimizer/scripts/audit_extended.py --project .
-   ~~~
-4. Если нужны глобальные skills/MCP, добавь `--include-global` явно.
-5. Для runtime/session telemetry сначала используй собственный engine:
-   ~~~bash
-   python skills/context-optimizer/scripts/native_telemetry.py --provider codex --output runtime.json
-   ~~~
-   Для Claude замени provider на `claude`. Для Antigravity по умолчанию выполняется safe static discovery; существующий statusline можно передать через `--statusline <file>`.
-6. CodeBurn не требуется. Если он уже установлен и нужен parity-check/compatibility evidence, используй [compatibility adapter](references/codeburn-adapter.md) отдельно; не устанавливай его автоматически.
-7. Большой log/JSON/diff/tool output можно отдельно проверить:
-   ~~~bash
-   python skills/context-optimizer/scripts/analyze_payload.py --input <file>
-   ~~~
-8. Если repository navigation выглядит дорогой, проверь Graphify status/plan:
-   ~~~bash
-   python skills/context-optimizer/scripts/graphify_adapter.py --project . --platform codex status
-   python skills/context-optimizer/scripts/graphify_adapter.py --project . --platform codex plan
-   ~~~
-   Если graph уже существует, для codebase-вопросов разрешён read-only query:
-   ~~~bash
-   python skills/context-optimizer/scripts/graphify_adapter.py --project . query --question "<вопрос>"
-   ~~~
-9. Сформируй findings по единому контракту и выведи отчёт на русском.
-10. Ничего не изменяй в проекте или глобальной конфигурации в v0.1.
+По умолчанию работа начинается в режиме **READ_ONLY**.
 
-## References загружаются только по необходимости
+## Основная команда
 
-- Числовые метрики → [measurement-model.md](references/measurement-model.md).
-- Finding contract → [finding-contract.md](references/finding-contract.md).
-- Слои аудита → [audit-model.md](references/audit-model.md).
-- Capability detection → [provider-capabilities.md](references/provider-capabilities.md).
-- Native telemetry → [native-telemetry.md](references/native-telemetry.md).
-- CodeBurn compatibility/oracle → [codeburn-adapter.md](references/codeburn-adapter.md).
-- Context ingress → [context-ingress.md](references/context-ingress.md).
-- Graphify → [graphify-adapter.md](references/graphify-adapter.md).
-- Apply/rollback → [apply-rollback.md](references/apply-rollback.md).
-- Optimization Ledger → [optimization-ledger.md](references/optimization-ledger.md).
-- Mutation/rollback в будущих версиях → [approval-model.md](references/approval-model.md).
-- Matreshka Agent / compact bridge → [matreshka-integration.md](references/matreshka-integration.md).
-- Before/after acceptance → [benchmarking.md](references/benchmarking.md).
+Для пользователя и Matreshka Agent есть единая команда:
 
-Не загружай все references заранее.
+~~~bash
+python skills/context-optimizer/scripts/context_optimizer.py --project . <command>
+~~~
+
+Поддерживаемые команды:
+
+- `start` — базовый снимок нового проекта;
+- `adopt` — первичный аудит готового проекта, который подключается к Matreshka;
+- `resume` — перепроверка после паузы или восстановления run;
+- `check` — событийная проверка при признаках перегрузки;
+- `status` — текущее состояние контекста;
+- `optimize` — подготовить план оптимизации без автоматического применения изменений.
+
+Пример:
+
+~~~bash
+python skills/context-optimizer/scripts/context_optimizer.py --project . start
+~~~
+
+Ответ пользователю должен быть на русском языке.
+
+## Когда запускать автоматически
+
+Не запускать полный аудит на каждом сообщении.
+
+Использовать [политику триггеров](references/trigger-policy.md).
+
+### 1. Новый проект
+
+После появления project root и первичной структуры, но **до массовой реализации**:
+
+~~~text
+NEW_PROJECT
+→ baseline отсутствует
+→ start
+~~~
+
+Цель: зафиксировать исходное состояние до того, как инструкции, skills и структура начнут расти.
+
+### 2. Готовый проект
+
+Когда Matreshka впервые подключается к существующему проекту:
+
+~~~text
+EXISTING_PROJECT
+→ baseline отсутствует
+→ adopt
+~~~
+
+Сначала read-only orientation и аудит. Только потом спецификация/план/изменения.
+
+### 3. Возобновление работы
+
+После длительной паузы или восстановления старого run:
+
+~~~text
+RESUME
+→ baseline отсутствует или устарел
+→ resume
+~~~
+
+### 4. Событие перегрузки
+
+Во время обычной разработки запускать `check`, если есть evidence:
+
+- `CONTEXT_TOO_BROAD`;
+- один и тот же файл перечитывается 3+ раз в рамках задачи;
+- произошло 2+ compaction;
+- крупные tool results занимают заметную долю входного контекста;
+- инструкции заметно выросли;
+- изменился набор skills;
+- изменилась MCP/tool-конфигурация;
+- структура проекта сильно изменилась.
+
+Детерминированная проверка:
+
+~~~bash
+python skills/context-optimizer/scripts/trigger_policy.py --signal-json signal.json
+~~~
+
+## Что измеряется
+
+### Runtime
+
+Собственный telemetry engine:
+
+~~~bash
+python skills/context-optimizer/scripts/native_telemetry.py --provider codex
+~~~
+
+Поддерживаются Codex, Claude Code и Antigravity.
+
+Provider counters сохраняются как `PROVIDER_MEASURED`. Если точного runtime measurement нет, используется `UNKNOWN`.
+
+### Static context
+
+Точные UTF-8 bytes для project instructions, skill descriptions/bodies, config surfaces и других instruction surfaces.
+
+`BYTE_COUNT` никогда не называется количеством токенов.
+
+### Карта проекта
+
+Нативная карта:
+
+~~~bash
+python skills/context-optimizer/scripts/project_map.py --project .
+~~~
+
+Она определяет число файлов, области проекта, типы файлов, размер, навигационную сложность и правило точечного чтения. Внешний графовый инструмент не требуется.
+
+## Слои аудита
+
+1. Project instructions.
+2. Skills.
+3. MCP/tools.
+4. Context ingress.
+5. Runtime/session telemetry.
+6. Повторные чтения.
+7. Tool-result overhead.
+8. Compaction pressure.
+9. Карта проекта и навигация.
+10. Before/after verification.
+
+## Findings
+
+Каждый finding обязан содержать проблему, evidence, measurement provenance, ожидаемый эффект, риск для качества, предложение и признак необходимости подтверждения.
+
+Finding без evidence не даёт права менять проект.
+
+## Изменения
+
+Перед mutation:
+
+1. сформировать `CHG-xxx`;
+2. сделать dry-run;
+3. зафиксировать `expected_before_sha256`;
+4. показать изменение пользователю;
+5. получить exact approval;
+6. сделать backup;
+7. применить одну операцию;
+8. выполнить re-measure;
+9. проверить качество;
+10. `KEEP` или `ROLLBACK`.
+
+Batch mutation запрещён.
+
+## Matreshka Agent
+
+Matreshka Agent использует Context Optimizer как отдельный peer skill.
+
+Matreshka получает только компактный bridge:
+
+~~~text
+health
+runtimeMeasurement
+staticContext
+staticRisk
+projectMap
+topFindings
+recommendations
+ledger
+trigger
+approvalRequired
+~~~
+
+Raw logs, большие telemetry reports и полные session traces не должны попадать в постоянный controller context.
+
+Bridge:
+
+~~~bash
+python skills/context-optimizer/scripts/matreshka_bridge.py \
+  --audit audit.json \
+  --runtime runtime.json \
+  --project-map project-map.json \
+  --ledger ledger.json \
+  --output context-bridge.json
+~~~
+
+Подробнее: [matreshka-integration.md](references/matreshka-integration.md).
+
+## Dashboard
+
+Matreshka должна показывать отдельный блок/вкладку **«Контекст»**.
+
+Минимально показывать:
+
+- состояние: Норма / Требует внимания / Критично / Неизвестно;
+- текущий runtime context, если он реально измерен;
+- размер статических инструкций;
+- сложность навигации по проекту;
+- главные 3–5 проблем;
+- что уже оптимизировано;
+- что ожидает проверки;
+- что требует подтверждения;
+- причину последнего автоматического запуска;
+- следующую рекомендуемую проверку.
+
+Пользовательские подписи — на русском.
+
+## References
+
+- [measurement-model.md](references/measurement-model.md)
+- [finding-contract.md](references/finding-contract.md)
+- [audit-model.md](references/audit-model.md)
+- [provider-capabilities.md](references/provider-capabilities.md)
+- [context-ingress.md](references/context-ingress.md)
+- [native-telemetry.md](references/native-telemetry.md)
+- [trigger-policy.md](references/trigger-policy.md)
+- [command-model.md](references/command-model.md)
+- [apply-rollback.md](references/apply-rollback.md)
+- [optimization-ledger.md](references/optimization-ledger.md)
+- [matreshka-integration.md](references/matreshka-integration.md)
+- [benchmarking.md](references/benchmarking.md)
+
+Не загружать все references заранее.
 
 ## Жёсткие правила
 
-- `BYTE_COUNT` не является token count.
-- `chars / N` — только `HEURISTIC_ESTIMATE`.
-- Если точного runtime measurement нет, используй `UNKNOWN`.
-- Native provider counters и byte-level context composition имеют разное provenance; bytes не превращаются в tokens.
-- В optional CodeBurn oracle `reported.context` и block-level token counts также имеют разное provenance.
-- CodeBurn health grade не является нашим `CONTEXT_HEALTH`.
-- Не запускай `codeburn optimize --apply` из v0.1.
-- Не удаляй и не отключай MCP/skills.
-- Не переписывай AGENTS.md, CLAUDE.md или GEMINI.md без отдельного approved change.
-- Перед mutation всегда делай dry-run и сверяй `expected_before_sha256`.
-- Один apply = один `CHG-xxx`; batch mutation запрещён.
-- После apply статус остаётся непроверенным, пока нет re-measure + quality verification.
-- Не устанавливай CodeBurn автоматически: штатная telemetry должна работать без него.
-- Не устанавливай Caveman или Graphify без отдельного approval.
-- Не строй Graphify graph только потому, что Graphify существует.
-- Не копируй Caveman Engine.
-- Порог размера/overlap — review signal, не доказательство мусора.
-- Отчёт и рекомендации пользователю — на русском языке.
-## Reversible mutation после approval
-
-Когда пользователь явно одобрил конкретный change:
-
-~~~bash
-python skills/context-optimizer/scripts/change_executor.py --project . dry-run --change change.json
-python skills/context-optimizer/scripts/change_executor.py --project . apply --change change.json --approve CHG-001
-~~~
-
-После измерений запиши verification в Optimization Ledger. При необходимости выполняй rollback только через hash-safe rollback token.
-## Compact bridge для Matreshka Agent
-
-После аудита сформируй только компактную проекцию, а не передавай весь audit/ledger в controller:
-
-~~~bash
-python skills/context-optimizer/scripts/matreshka_bridge.py --audit audit.json --runtime runtime.json --graphify graphify.json --ledger ledger.json --output context-optimizer-bridge.json
-~~~
-
-Runtime tokens и static bytes всегда остаются раздельными. Bridge не является authority на mutation.
-## Before/after verification
-
-После оптимизации не объявляй экономию успешной по одному token delta. Для сопоставимых run records используй:
-
-~~~bash
-python evals/evaluate_before_after.py --before before.json --after after.json
-~~~
-
-`HEURISTIC_ESTIMATE`, static bytes или несопоставимые provider/model/task conditions дают `UNVERIFIED`, а не PASS.
+- Не выдавать bytes за tokens.
+- Не выдавать эвристику за provider telemetry.
+- Не запускать полный аудит на каждом сообщении.
+- Не удалять MCP/skills автоматически.
+- Не переписывать instruction files без approved change.
+- Не устанавливать сторонние оптимизаторы.
+- Не отправлять telemetry наружу.
+- Не сканировать процессы и локальные RPC без отдельной необходимости и явного разрешения.
+- Не ухудшать качество ради меньшего числа токенов.
+- Пользовательские сообщения и dashboard — на русском.

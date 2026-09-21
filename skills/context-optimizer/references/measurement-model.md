@@ -18,7 +18,7 @@
 value: 18432
 unit: tokens
 measurement_type: PROVIDER_MEASURED
-source: codeburn
+source: native-provider-log
 provider: codex
 ```
 
@@ -26,7 +26,7 @@ provider: codex
 
 ### TOOL_MEASURED
 
-Число измерено внешним инструментом, который имеет собственную методологию.
+Число измерено детерминированным инструментом/процедурой с собственной методологией.
 
 Требуется сохранить:
 
