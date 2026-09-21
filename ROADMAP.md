@@ -5,7 +5,7 @@
 - [x] Источники и лицензии.
 - [x] Русскоязычный README.
 - [ ] Переименовать репозиторий `Matreshk-context-optimizer` → `Matreshka-context-optimizer` через GitHub repository settings.
-- [ ] Установить GitHub short description через repository settings.
+- [x] GitHub short description установлен.
 
 ## Gate 1 — Спецификация v0.1
 **PASS**
@@ -97,7 +97,7 @@
 - [x] runtime state excluded from future context audits.
 
 ## Gate 10 — Matreshka Agent Bridge
-**IMPLEMENTED IN OPTIMIZER / MATRESHKA-SIDE WIRING IN PROGRESS**
+**PASS / INTEGRATED WITH MATRESHKA AGENT**
 - [x] compact bridge schema;
 - [x] deterministic bridge builder;
 - [x] exact runtime-vs-static separation;
@@ -107,8 +107,19 @@
 - [x] approval state projection;
 - [x] CodeBurn optimize savings rejected as current runtime usage;
 - [x] bridge smoke test;
-- [ ] Matreshka Agent controller/ledger/dashboard wiring;
+- [x] Matreshka Agent controller/ledger/dashboard wiring;
 
 ## Gate 11 — Реальные benchmark/evals
-**PLANNED**
-Acceptance: context/token cost ↓ при task success >= baseline, retries/errors <= baseline и без information loss.
+**IMPLEMENTED HARNESS / REAL STATIC PILOT AUTOMATED / RUNTIME SAVINGS EVIDENCE PENDING**
+- [x] benchmark run schema;
+- [x] benchmark result schema;
+- [x] comparability checks;
+- [x] PASS / FAIL / UNVERIFIED evaluator;
+- [x] quality-regression gates;
+- [x] heuristic/static measurements cannot produce runtime PASS;
+- [x] package-layout skill discovery;
+- [x] real read-only Matreshka Agent pilot in CI;
+- [x] target-cleanliness verification;
+- [ ] comparable provider-measured before/after agent sessions;
+
+Acceptance remains: measured context/token cost ↓ при task success >= baseline, retries/errors/wrong-file reads <= baseline и information loss = NO.

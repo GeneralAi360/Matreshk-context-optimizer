@@ -38,6 +38,7 @@ _configure_utf8_stdio()
 
 INSTRUCTION_NAMES = {"AGENTS.md", "CLAUDE.md", "GEMINI.md"}
 PROJECT_SKILL_ROOTS = (
+    ("skills", "package"),
     (".agents/skills", "codex"),
     (".claude/skills", "claude"),
     (".gemini/skills", "gemini"),

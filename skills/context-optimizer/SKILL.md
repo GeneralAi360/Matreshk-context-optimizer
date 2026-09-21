@@ -58,6 +58,7 @@ description: Использовать, когда нужно измерить и
 - Optimization Ledger → [optimization-ledger.md](references/optimization-ledger.md).
 - Mutation/rollback в будущих версиях → [approval-model.md](references/approval-model.md).
 - Matreshka Agent / compact bridge → [matreshka-integration.md](references/matreshka-integration.md).
+- Before/after acceptance → [benchmarking.md](references/benchmarking.md).
 
 Не загружай все references заранее.
 
@@ -98,3 +99,12 @@ python skills/context-optimizer/scripts/matreshka_bridge.py --audit audit.json -
 ~~~
 
 Runtime tokens и static bytes всегда остаются раздельными. Bridge не является authority на mutation.
+## Before/after verification
+
+После оптимизации не объявляй экономию успешной по одному token delta. Для сопоставимых run records используй:
+
+~~~bash
+python evals/evaluate_before_after.py --before before.json --after after.json
+~~~
+
+`HEURISTIC_ESTIMATE`, static bytes или несопоставимые provider/model/task conditions дают `UNVERIFIED`, а не PASS.
