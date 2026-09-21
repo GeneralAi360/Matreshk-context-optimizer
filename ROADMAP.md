@@ -29,8 +29,8 @@
 - [x] Graphify/external CLI detection.
 - [x] smoke test.
 
-## Gate 4 — CodeBurn Adapter
-**IMPLEMENTED / REAL CODEBURN PILOT PENDING**
+## Gate 4 — CodeBurn Compatibility Adapter
+**IMPLEMENTED / OPTIONAL ORACLE-FALLBACK**
 - [x] optimize/context/doctor read-only adapter.
 - [x] version provenance.
 - [x] measured vs estimated basis.
@@ -123,3 +123,27 @@
 - [ ] comparable provider-measured before/after agent sessions;
 
 Acceptance remains: measured context/token cost ↓ при task success >= baseline, retries/errors/wrong-file reads <= baseline и information loss = NO.
+
+## Gate 12 — Native Telemetry Engine
+**CORE IMPLEMENTED / REAL LOCAL CORPUS PARITY PENDING**
+- [x] собственный telemetry package без runtime dependency на CodeBurn;
+- [x] Codex strict local session discovery;
+- [x] Codex provider-measured token parser;
+- [x] Codex cumulative/dedup guards;
+- [x] exact byte-level context composition;
+- [x] file-read / skill / MCP / tool event extraction;
+- [x] native waste detectors;
+- [x] user-level cache, выключенный по умолчанию;
+- [x] Claude Code native JSONL usage parser;
+- [x] safe Antigravity static discovery;
+- [x] Antigravity existing-statusline parser без process probe/RPC;
+- [x] native telemetry schema;
+- [x] Matreshka bridge принимает native current-context measurement;
+- [x] CodeBurn comparison tool как optional test oracle;
+- [x] synthetic multi-provider smoke suite;
+- [ ] parity-check на реальном пользовательском Codex corpus против CodeBurn;
+- [ ] direct safe Antigravity DB/PB decoder без live RPC;
+- [ ] Claude cross-file resumed-session dedup hardening;
+- [ ] comparable native provider-measured BEFORE/AFTER production sessions.
+
+После Gate 12 CodeBurn имеет статус REFERENCE / OPTIONAL_ORACLE / COMPATIBILITY, а не REQUIRED_DEPENDENCY.
