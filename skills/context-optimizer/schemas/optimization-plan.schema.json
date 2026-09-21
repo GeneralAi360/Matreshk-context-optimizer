@@ -1,0 +1,96 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://generalai360.github.io/matreshka-context-optimizer/schemas/optimization-plan.schema.json",
+  "title": "Context Optimizer Optimization Plan",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "plan_id",
+    "mode",
+    "finding_ids",
+    "changes",
+    "verification"
+  ],
+  "properties": {
+    "plan_id": {
+      "type": "string",
+      "pattern": "^PLAN-[0-9]{3,}$"
+    },
+    "mode": {
+      "type": "string",
+      "enum": [
+        "PROPOSE_ONLY",
+        "APPLY_REVERSIBLE"
+      ]
+    },
+    "finding_ids": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "pattern": "^CTX-[0-9]{3,}$"
+      }
+    },
+    "changes": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "change_id",
+          "action",
+          "target",
+          "approval_required",
+          "rollback_required"
+        ],
+        "properties": {
+          "change_id": {
+            "type": "string",
+            "pattern": "^CHG-[0-9]{3,}$"
+          },
+          "action": {
+            "type": "string",
+            "minLength": 1
+          },
+          "target": {
+            "type": "string",
+            "minLength": 1
+          },
+          "approval_required": {
+            "type": "boolean"
+          },
+          "rollback_required": {
+            "type": "boolean"
+          },
+          "notes": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      }
+    },
+    "verification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "re_measure",
+        "quality_checks"
+      ],
+      "properties": {
+        "re_measure": {
+          "type": "boolean"
+        },
+        "quality_checks": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    }
+  }
+}

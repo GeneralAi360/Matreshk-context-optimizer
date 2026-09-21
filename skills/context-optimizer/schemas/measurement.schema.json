@@ -1,0 +1,108 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://generalai360.github.io/matreshka-context-optimizer/schemas/measurement.schema.json",
+  "title": "Context Optimizer Measurement",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "measurement_type",
+    "unit",
+    "source",
+    "confidence"
+  ],
+  "properties": {
+    "value": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "unit": {
+      "type": "string",
+      "enum": [
+        "tokens",
+        "bytes",
+        "calls",
+        "count",
+        "milliseconds",
+        "ratio",
+        "unknown"
+      ]
+    },
+    "measurement_type": {
+      "type": "string",
+      "enum": [
+        "PROVIDER_MEASURED",
+        "TOOL_MEASURED",
+        "TOKENIZER_ESTIMATE",
+        "BYTE_COUNT",
+        "HEURISTIC_ESTIMATE",
+        "UNKNOWN"
+      ]
+    },
+    "source": {
+      "type": "string",
+      "minLength": 1
+    },
+    "provider": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "tool": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "tool_version": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "method": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "confidence": {
+      "type": "string",
+      "enum": [
+        "HIGH",
+        "MEDIUM",
+        "LOW",
+        "UNKNOWN"
+      ]
+    },
+    "notes": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "measurement_type": {
+            "const": "UNKNOWN"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "value": {
+            "type": "null"
+          },
+          "unit": {
+            "const": "unknown"
+          }
+        }
+      }
+    }
+  ]
+}

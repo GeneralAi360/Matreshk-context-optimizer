@@ -1,0 +1,105 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://generalai360.github.io/matreshka-context-optimizer/schemas/audit-report.schema.json",
+  "title": "Context Optimizer Audit Report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "mode",
+    "generated_at",
+    "project_root",
+    "environment",
+    "capabilities",
+    "measurements",
+    "findings",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.1"
+    },
+    "mode": {
+      "const": "READ_ONLY"
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "project_root": {
+      "type": "string",
+      "minLength": 1
+    },
+    "environment": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "capabilities": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string",
+        "enum": [
+          "SUPPORTED",
+          "PARTIAL",
+          "UNSUPPORTED",
+          "UNKNOWN"
+        ]
+      }
+    },
+    "measurements": {
+      "type": "array",
+      "items": {
+        "$ref": "measurement.schema.json"
+      }
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "$ref": "finding.schema.json"
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "context_health",
+        "static_risk",
+        "finding_count",
+        "runtime_measurement_state"
+      ],
+      "properties": {
+        "context_health": {
+          "type": "string",
+          "enum": [
+            "OK",
+            "WARNING",
+            "CRITICAL",
+            "UNKNOWN"
+          ]
+        },
+        "static_risk": {
+          "type": "string",
+          "enum": [
+            "OK",
+            "WARNING",
+            "CRITICAL",
+            "UNKNOWN"
+          ]
+        },
+        "finding_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "runtime_measurement_state": {
+          "type": "string",
+          "enum": [
+            "AVAILABLE",
+            "PARTIAL",
+            "UNAVAILABLE",
+            "UNKNOWN"
+          ]
+        }
+      }
+    }
+  }
+}

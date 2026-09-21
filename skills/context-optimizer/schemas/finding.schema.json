@@ -1,0 +1,195 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://generalai360.github.io/matreshka-context-optimizer/schemas/finding.schema.json",
+  "title": "Context Optimizer Finding",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "finding_id",
+    "category",
+    "platform",
+    "scope",
+    "problem",
+    "evidence",
+    "measurement",
+    "expected_effect",
+    "confidence",
+    "quality_risk",
+    "proposal",
+    "approval_required",
+    "status"
+  ],
+  "properties": {
+    "finding_id": {
+      "type": "string",
+      "pattern": "^CTX-[0-9]{3,}$"
+    },
+    "category": {
+      "type": "string",
+      "minLength": 1
+    },
+    "platform": {
+      "type": "string",
+      "minLength": 1
+    },
+    "scope": {
+      "type": "string",
+      "enum": [
+        "GLOBAL",
+        "PROJECT",
+        "MODULE",
+        "SESSION",
+        "UNKNOWN"
+      ]
+    },
+    "problem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "title",
+        "description"
+      ],
+      "properties": {
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "evidence": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "source",
+          "detail"
+        ],
+        "properties": {
+          "source": {
+            "type": "string",
+            "minLength": 1
+          },
+          "detail": {
+            "type": "string",
+            "minLength": 1
+          },
+          "locator": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "observed_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        }
+      }
+    },
+    "measurement": {
+      "$ref": "measurement.schema.json"
+    },
+    "expected_effect": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "direction",
+        "description"
+      ],
+      "properties": {
+        "direction": {
+          "type": "string",
+          "enum": [
+            "REDUCE_CONTEXT",
+            "REDUCE_TOKENS",
+            "REDUCE_STEPS",
+            "IMPROVE_ROUTING",
+            "IMPROVE_RECOVERABILITY",
+            "UNKNOWN"
+          ]
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1
+        },
+        "estimated_saving": {
+          "oneOf": [
+            {
+              "$ref": "measurement.schema.json"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "confidence": {
+      "type": "string",
+      "enum": [
+        "HIGH",
+        "MEDIUM",
+        "LOW",
+        "UNKNOWN"
+      ]
+    },
+    "quality_risk": {
+      "type": "string",
+      "enum": [
+        "LOW",
+        "MEDIUM",
+        "HIGH",
+        "UNKNOWN"
+      ]
+    },
+    "proposal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "action",
+        "description"
+      ],
+      "properties": {
+        "action": {
+          "type": "string",
+          "minLength": 1
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1
+        },
+        "target": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "approval_required": {
+      "type": "boolean"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "OBSERVED",
+        "PROPOSED",
+        "APPROVED",
+        "APPLIED",
+        "VERIFIED",
+        "ROLLED_BACK",
+        "UNVERIFIED",
+        "DISMISSED"
+      ]
+    }
+  }
+}

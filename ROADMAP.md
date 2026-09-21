@@ -2,17 +2,18 @@
 
 ## Gate 0 — Provenance и базовая структура
 
-Статус: **IN PROGRESS**
+Статус: **PASS с административным follow-up**
 
 - [x] Зафиксировать рабочий репозиторий.
 - [x] Создать реестр источников.
 - [x] Зафиксировать лицензионные ограничения внешних инструментов.
 - [x] Создать русскоязычный README.
 - [ ] Переименовать репозиторий из `Matreshk-context-optimizer` в `Matreshka-context-optimizer` через GitHub repository settings.
+- [ ] Установить GitHub short description через repository settings.
 
 ## Gate 1 — Спецификация Context Optimizer v0.1
 
-Статус: **IN PROGRESS**
+Статус: **PASS**
 
 - [x] Определить цель и non-goals.
 - [x] Определить модель измерений.
@@ -22,26 +23,43 @@
 
 ## Gate 2 — Единый контракт Finding
 
-Статус: **PLANNED**
+Статус: **PASS**
 
-- finding schema;
-- evidence schema;
-- measurement provenance;
-- expected effect;
-- quality risk;
-- proposed change;
-- approval state;
-- verification state.
+- [x] measurement schema;
+- [x] finding schema;
+- [x] audit report schema;
+- [x] optimization plan schema;
+- [x] evidence requirement;
+- [x] measurement provenance;
+- [x] expected effect;
+- [x] quality risk;
+- [x] approval state;
+- [x] verification-ready statuses.
 
 ## Gate 3 — Read-only MVP
 
-Статус: **PLANNED**
+Статус: **IMPLEMENTED / NEEDS REAL PROJECT PILOT**
 
-Первая рабочая версия ничего не меняет. Она только:
+Первая рабочая версия ничего не меняет:
 
-```text
+~~~text
 SCAN → MEASURE → AUDIT → REPORT
-```
+~~~
+
+Реализовано:
+
+- [x] compact `SKILL.md`;
+- [x] environment scanner;
+- [x] static instruction byte measurements;
+- [x] exact cross-file duplicate detection;
+- [x] project/global skill inventory;
+- [x] skill scope collision detection;
+- [x] Graphify graph presence detection;
+- [x] external CLI availability detection;
+- [x] no-dependency smoke test;
+- [x] запрет на fake token conversion.
+
+Следующий acceptance gate: запуск на реальном проекте и сверка отчёта вручную.
 
 ## Gate 4 — CodeBurn Adapter
 
@@ -61,7 +79,7 @@ SCAN → MEASURE → AUDIT → REPORT
 - Skills Audit;
 - MCP / Tools Audit;
 - scope mismatch;
-- duplicates;
+- semantic overlaps;
 - conflicts;
 - stale instructions;
 - routing collisions.
@@ -87,11 +105,11 @@ Graphify не является обязательной зависимостью
 
 Статус: **PLANNED**
 
-```text
+~~~text
 FINDING → EVIDENCE → EXPECTED EFFECT → RISK
 → DRY RUN → APPROVAL → BACKUP → APPLY
 → RE-MEASURE → VERIFY → KEEP / ROLLBACK
-```
+~~~
 
 ## Gate 9 — Optimization Ledger
 
@@ -111,10 +129,10 @@ FINDING → EVIDENCE → EXPECTED EFFECT → RISK
 
 Acceptance:
 
-```text
+~~~text
 TOKEN / CONTEXT COST ↓
 AND TASK SUCCESS >= BEFORE
 AND RETRIES <= BEFORE
 AND ERRORS <= BEFORE
 AND INFORMATION LOSS = NO
-```
+~~~
