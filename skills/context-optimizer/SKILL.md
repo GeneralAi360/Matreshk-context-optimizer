@@ -54,6 +54,8 @@ description: Использовать, когда нужно измерить и
 - CodeBurn → [codeburn-adapter.md](references/codeburn-adapter.md).
 - Context ingress → [context-ingress.md](references/context-ingress.md).
 - Graphify → [graphify-adapter.md](references/graphify-adapter.md).
+- Apply/rollback → [apply-rollback.md](references/apply-rollback.md).
+- Optimization Ledger → [optimization-ledger.md](references/optimization-ledger.md).
 - Mutation/rollback в будущих версиях → [approval-model.md](references/approval-model.md).
 - Matreshka Agent → [matreshka-integration.md](references/matreshka-integration.md).
 
@@ -68,9 +70,22 @@ description: Использовать, когда нужно измерить и
 - CodeBurn health grade не является нашим `CONTEXT_HEALTH`.
 - Не запускай `codeburn optimize --apply` из v0.1.
 - Не удаляй и не отключай MCP/skills.
-- Не переписывай AGENTS.md, CLAUDE.md или GEMINI.md.
+- Не переписывай AGENTS.md, CLAUDE.md или GEMINI.md без отдельного approved change.
+- Перед mutation всегда делай dry-run и сверяй `expected_before_sha256`.
+- Один apply = один `CHG-xxx`; batch mutation запрещён.
+- После apply статус остаётся непроверенным, пока нет re-measure + quality verification.
 - Не устанавливай CodeBurn, Caveman или Graphify без отдельного approval.
 - Не строй Graphify graph только потому, что Graphify существует.
 - Не копируй Caveman Engine.
 - Порог размера/overlap — review signal, не доказательство мусора.
 - Отчёт и рекомендации пользователю — на русском языке.
+## Reversible mutation после approval
+
+Когда пользователь явно одобрил конкретный change:
+
+~~~bash
+python skills/context-optimizer/scripts/change_executor.py --project . dry-run --change change.json
+python skills/context-optimizer/scripts/change_executor.py --project . apply --change change.json --approve CHG-001
+~~~
+
+После измерений запиши verification в Optimization Ledger. При необходимости выполняй rollback только через hash-safe rollback token.

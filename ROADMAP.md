@@ -73,10 +73,28 @@
 - [x] smoke test.
 
 ## Gate 8 — Apply / Backup / Rollback
-**PLANNED**
+**IMPLEMENTED / PILOT PENDING**
+- [x] one-change-per-run;
+- [x] dry-run without mutation;
+- [x] exact approval token;
+- [x] expected-before SHA-256;
+- [x] project-boundary protection + explicit global override;
+- [x] backup before mutation;
+- [x] REPLACE_EXACT_TEXT;
+- [x] JSON_SET;
+- [x] MOVE_PATH;
+- [x] post-change validation;
+- [x] auto-restore on apply failure;
+- [x] rollback refuses to overwrite later changes.
 
 ## Gate 9 — Optimization Ledger
-**PLANNED**
+**IMPLEMENTED / PILOT PENDING**
+- [x] append-only JSONL ledger;
+- [x] APPLIED / ROLLED_BACK / VERIFICATION events;
+- [x] KEEP / ROLLBACK / UNVERIFIED / NEEDS_MORE_DATA decisions;
+- [x] metrics and quality kept separate;
+- [x] per-change history and summary;
+- [x] runtime state excluded from future context audits.
 
 ## Gate 10 — Matreshka Agent Bridge
 **PLANNED**
