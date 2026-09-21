@@ -86,7 +86,7 @@ def hash_path(path: Path) -> str:
 
 def is_within(path: Path, root: Path) -> bool:
     try:
-        path.relative_to(root)
+        path.resolve().relative_to(root.resolve())
         return True
     except ValueError:
         return False
