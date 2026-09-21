@@ -474,6 +474,7 @@ def parse_session(path: Path, *, archived: bool = False) -> dict[str, Any]:
         "context": {
             "reported_context_tokens": current_context_tokens,
             "reported_context_measurement_type": "PROVIDER_MEASURED" if current_context_tokens is not None else "UNKNOWN",
+            "reported_context_semantics": "CURRENT_CONTEXT" if current_context_tokens is not None else "UNKNOWN",
             "context_window_tokens": context_window,
             "breakdown_unit": "bytes",
             "breakdown_bytes_full": full,
