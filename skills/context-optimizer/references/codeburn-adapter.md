@@ -1,10 +1,17 @@
-# Adapter CodeBurn
+# CodeBurn Compatibility / Oracle Adapter
 
 Repository upstream: https://github.com/getagentseal/codeburn
 
 ## Роль
 
-CodeBurn используется как внешний read-only источник runtime/session telemetry и findings. Context Optimizer не форкает CodeBurn и не запускает его mutation-команды.
+Начиная с v0.2 CodeBurn **не является основным telemetry engine и не является обязательной dependency**.
+
+Основной путь — собственный [Native Matreshka Context Telemetry](native-telemetry.md). Этот adapter сохраняется только для:
+- сравнения native результата с внешним oracle;
+- временного compatibility fallback;
+- чтения уже существующих CodeBurn reports.
+
+Context Optimizer не устанавливает CodeBurn автоматически и не запускает его mutation-команды.
 
 ## Разрешённые команды в Gate 4
 
