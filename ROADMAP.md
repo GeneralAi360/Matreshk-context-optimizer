@@ -1,122 +1,75 @@
 # План реализации
 
 ## Gate 0 — Provenance и базовая структура
-
-Статус: **PASS с административным follow-up**
-
-- [x] Зафиксировать рабочий репозиторий.
-- [x] Создать реестр источников.
-- [x] Зафиксировать лицензионные ограничения внешних инструментов.
-- [x] Создать русскоязычный README.
-- [ ] Переименовать репозиторий из `Matreshk-context-optimizer` в `Matreshka-context-optimizer` через GitHub repository settings.
+**PASS с административным follow-up**
+- [x] Источники и лицензии.
+- [x] Русскоязычный README.
+- [ ] Переименовать репозиторий `Matreshk-context-optimizer` → `Matreshka-context-optimizer` через GitHub repository settings.
 - [ ] Установить GitHub short description через repository settings.
 
-## Gate 1 — Спецификация Context Optimizer v0.1
-
-Статус: **PASS**
-
-- [x] Цель и non-goals.
+## Gate 1 — Спецификация v0.1
+**PASS**
+- [x] Goal/non-goals.
 - [x] Measurement model.
-- [x] Safety/approval policy.
+- [x] Safety/approval.
 - [x] Capability model.
-- [x] Граница интеграции с Matreshka Agent.
+- [x] Matreshka integration boundary.
 
-## Gate 2 — Единый контракт Finding
-
-Статус: **PASS**
-
-- [x] measurement schema;
-- [x] finding schema;
-- [x] audit report schema;
-- [x] optimization plan schema;
-- [x] evidence + provenance + risk + status.
+## Gate 2 — Finding contract
+**PASS**
+- [x] measurement/finding/audit/plan schemas.
+- [x] evidence + provenance + risk + statuses.
 
 ## Gate 3 — Read-only MVP
-
-Статус: **IMPLEMENTED / NEEDS REAL PROJECT PILOT**
-
-- [x] compact `SKILL.md`;
-- [x] environment scanner;
-- [x] exact static BYTE_COUNT;
-- [x] cross-file duplicate detection;
-- [x] skill inventory/scope collision;
-- [x] Graphify presence detection;
-- [x] external CLI detection;
-- [x] smoke test;
-- [x] no fake token conversion.
+**IMPLEMENTED / REAL PROJECT PILOT PENDING**
+- [x] environment scan.
+- [x] exact static bytes.
+- [x] duplicate instruction lines.
+- [x] skill inventory/scope.
+- [x] Graphify/external CLI detection.
+- [x] smoke test.
 
 ## Gate 4 — CodeBurn Adapter
-
-Статус: **IMPLEMENTED / NEEDS REAL CODEBURN PILOT**
-
-- [x] detect CodeBurn in PATH;
-- [x] capture version;
-- [x] read-only `optimize --format json`;
-- [x] read-only `context --json` for Claude/Codex;
-- [x] read-only `doctor --json`;
-- [x] normalize `measured` vs `estimated` basis;
-- [x] preserve raw finding id/class/fix;
-- [x] never execute `--apply`;
-- [x] offline fixture smoke test.
+**IMPLEMENTED / REAL CODEBURN PILOT PENDING**
+- [x] optimize/context/doctor read-only adapter.
+- [x] version provenance.
+- [x] measured vs estimated basis.
+- [x] context tree provenance documented.
+- [x] offline smoke test.
 
 ## Gate 5 — Собственные аудиторы
-
-Статус: **PLANNED**
-
-- Instructions Audit;
-- Skills Audit;
-- MCP / Tools Audit;
-- scope mismatch;
-- semantic overlaps;
-- conflicts;
-- stale instructions;
-- routing collisions.
+**IMPLEMENTED / PILOT PENDING**
+- [x] Instruction hygiene review signals.
+- [x] Skill body/description review.
+- [x] Skill routing-overlap signal.
+- [x] MCP config inventory.
+- [x] MCP duplicate registration.
+- [x] missing local MCP command.
+- [x] aggregate read-only audit.
+- [ ] semantic conflict detection — после пилота и только с evidence model.
 
 ## Gate 6 — Context Ingress Audit
-
-Статус: **PLANNED**
-
-- LOG_OVERFLOW;
-- JSON_OVERFLOW;
-- DIFF_OVERFLOW;
-- TEST_OUTPUT_OVERFLOW;
-- DIRECTORY_LISTING_OVERFLOW;
-- REPEATED_FILE_READ.
+**IMPLEMENTED / PILOT PENDING**
+- [x] CodeBurn context-tree analyzer.
+- [x] exact-vs-estimated provenance.
+- [x] tool-result dominance signal.
+- [x] payload type/byte/line analysis.
+- [x] repeated-line ingress detection.
+- [x] large-payload review signal.
 
 ## Gate 7 — Graphify Adapter
-
-Статус: **PLANNED**
-
-Graphify не является обязательной зависимостью. Подключается только при доказанной пользе для конкретного проекта.
+**PLANNED**
+Graphify остаётся optional project-local dependency; install только после evidence + approval.
 
 ## Gate 8 — Apply / Backup / Rollback
-
-Статус: **PLANNED**
-
-~~~text
-FINDING → EVIDENCE → EXPECTED EFFECT → RISK
-→ DRY RUN → APPROVAL → BACKUP → APPLY
-→ RE-MEASURE → VERIFY → KEEP / ROLLBACK
-~~~
+**PLANNED**
 
 ## Gate 9 — Optimization Ledger
-
-Статус: **PLANNED**
+**PLANNED**
 
 ## Gate 10 — Matreshka Agent Bridge
-
-Статус: **PLANNED**
+**PLANNED**
 
 ## Gate 11 — Реальные benchmark/evals
-
-Статус: **PLANNED**
-
-Acceptance:
-
-~~~text
-TOKEN / CONTEXT COST ↓
-AND TASK SUCCESS >= BEFORE
-AND RETRIES <= BEFORE
-AND ERRORS <= BEFORE
-AND INFORMATION LOSS = NO
-~~~
+**PLANNED**
+Acceptance: context/token cost ↓ при task success >= baseline, retries/errors <= baseline и без information loss.

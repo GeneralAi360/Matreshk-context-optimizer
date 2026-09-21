@@ -11,79 +11,56 @@ description: Использовать, когда нужно измерить и
 
 Текущий режим `v0.1` — **READ_ONLY**.
 
-## Базовый процесс
+## Основной запуск
 
 1. Определи project root и фактический harness.
-2. Проверь доступные capabilities, а не предполагай их по названию платформы.
-3. Запусти project-local environment scan:
+2. Проверь capabilities, а не предполагай их по названию платформы.
+3. Запусти сводный read-only аудит:
    ~~~bash
-   python skills/context-optimizer/scripts/scan_environment.py --project .
+   python skills/context-optimizer/scripts/audit_extended.py --project .
    ~~~
-4. Запусти статический аудит:
-   ~~~bash
-   python skills/context-optimizer/scripts/audit_static_context.py --project .
-   ~~~
-5. Если CodeBurn уже доступен, используй read-only adapter:
+4. Если нужны глобальные skills/MCP, добавь `--include-global` явно.
+5. Если CodeBurn уже установлен, запусти read-only adapter:
    ~~~bash
    python skills/context-optimizer/scripts/codeburn_adapter.py --command optimize
    ~~~
-   Для конкретной Codex/Claude Code сессии допускается:
+6. Для конкретной Codex/Claude Code сессии получи context tree через adapter, затем проанализируй его:
    ~~~bash
-   python skills/context-optimizer/scripts/codeburn_adapter.py --command context --provider codex --session <id>
+   python skills/context-optimizer/scripts/codeburn_adapter.py --command context --provider codex --session <id> --output context.json
+   python skills/context-optimizer/scripts/analyze_context_tree.py --input context.json
    ~~~
-6. Нормализуй findings по единому контракту и не смешивай типы измерений.
-7. Выведи отчёт на русском языке.
-8. Ничего не изменяй в проекте или глобальной конфигурации в v0.1.
+7. Большой log/JSON/diff/tool output можно отдельно проверить:
+   ~~~bash
+   python skills/context-optimizer/scripts/analyze_payload.py --input <file>
+   ~~~
+8. Сформируй findings по единому контракту и выведи отчёт на русском.
+9. Ничего не изменяй в проекте или глобальной конфигурации в v0.1.
 
-## Когда читать references
+## References загружаются только по необходимости
 
-- Для любой числовой метрики прочитай [measurement-model.md](references/measurement-model.md).
-- Для findings прочитай [finding-contract.md](references/finding-contract.md).
-- Для capability detection прочитай [provider-capabilities.md](references/provider-capabilities.md).
-- При использовании CodeBurn прочитай [codeburn-adapter.md](references/codeburn-adapter.md).
-- Перед любым будущим mutation-flow прочитай [approval-model.md](references/approval-model.md).
-- При работе из Matreshka Agent прочитай [matreshka-integration.md](references/matreshka-integration.md).
+- Числовые метрики → [measurement-model.md](references/measurement-model.md).
+- Finding contract → [finding-contract.md](references/finding-contract.md).
+- Слои аудита → [audit-model.md](references/audit-model.md).
+- Capability detection → [provider-capabilities.md](references/provider-capabilities.md).
+- CodeBurn → [codeburn-adapter.md](references/codeburn-adapter.md).
+- Context ingress → [context-ingress.md](references/context-ingress.md).
+- Mutation/rollback в будущих версиях → [approval-model.md](references/approval-model.md).
+- Matreshka Agent → [matreshka-integration.md](references/matreshka-integration.md).
 
-Не загружай все references без необходимости.
+Не загружай все references заранее.
 
 ## Жёсткие правила
 
 - `BYTE_COUNT` не является token count.
 - `chars / N` — только `HEURISTIC_ESTIMATE`.
 - Если точного runtime measurement нет, используй `UNKNOWN`.
-- CodeBurn `basis=measured` можно сохранять как provider-measured provenance только с явной ссылкой на CodeBurn как источник агрегации.
+- В CodeBurn context tree `reported.context` и block-level token counts имеют разное provenance.
 - CodeBurn health grade не является нашим `CONTEXT_HEALTH`.
 - Не запускай `codeburn optimize --apply` из v0.1.
 - Не удаляй и не отключай MCP/skills.
 - Не переписывай AGENTS.md, CLAUDE.md или GEMINI.md.
 - Не устанавливай CodeBurn, Caveman или Graphify без отдельного approval.
 - Не строй Graphify graph только потому, что Graphify существует.
-- Не копируй Caveman Engine в этот проект.
+- Не копируй Caveman Engine.
+- Порог размера/overlap — review signal, не доказательство мусора.
 - Отчёт и рекомендации пользователю — на русском языке.
-
-## Формат короткого отчёта
-
-~~~text
-СОСТОЯНИЕ КОНТЕКСТА
-Runtime measurement: <AVAILABLE/PARTIAL/UNKNOWN>
-Static instructions: <точные bytes>
-Findings: <N>
-
-Основные причины:
-1. ...
-2. ...
-
-Что измерено точно:
-- ...
-
-Что является оценкой:
-- ...
-
-Что пока неизвестно:
-- ...
-
-Рекомендации:
-- ...
-
-Изменения не применялись: READ_ONLY
-~~~
