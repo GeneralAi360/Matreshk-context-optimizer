@@ -33,3 +33,6 @@ jobs:
       - name: Gate 5-6 smoke
         shell: bash
         run: python evals/run_gate5_6_smoke.py
+      - name: Graphify adapter smoke
+        shell: bash
+        run: python evals/run_graphify_adapter_smoke.py

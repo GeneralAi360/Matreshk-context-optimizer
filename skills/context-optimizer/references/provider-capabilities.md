@@ -88,6 +88,16 @@ Graphify — capability `REPOSITORY_GRAPH_NAVIGATION`.
 
 Это отдельная внешняя capability, а не обязательная часть harness.
 
+Adapter различает:
+
+- `GRAPHIFY_CLI_AVAILABLE`;
+- `GRAPHIFY_PROJECT_SKILL_INSTALLED`;
+- `GRAPHIFY_GRAPH_READY`;
+- `GRAPHIFY_GRAPH_POSSIBLY_STALE`;
+- `GRAPHIFY_QUERY_READY`.
+
+Project-scoped integration проверяется отдельно для Codex, Claude Code, Antigravity и generic Agent-Skills.
+
 ## Caveman
 
 Caveman — capability `RECOVERABLE_CONTEXT_COMPRESSION`.

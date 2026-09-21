@@ -33,8 +33,17 @@ description: Использовать, когда нужно измерить и
    ~~~bash
    python skills/context-optimizer/scripts/analyze_payload.py --input <file>
    ~~~
-8. Сформируй findings по единому контракту и выведи отчёт на русском.
-9. Ничего не изменяй в проекте или глобальной конфигурации в v0.1.
+8. Если repository navigation выглядит дорогой, проверь Graphify status/plan:
+   ~~~bash
+   python skills/context-optimizer/scripts/graphify_adapter.py --project . --platform codex status
+   python skills/context-optimizer/scripts/graphify_adapter.py --project . --platform codex plan
+   ~~~
+   Если graph уже существует, для codebase-вопросов разрешён read-only query:
+   ~~~bash
+   python skills/context-optimizer/scripts/graphify_adapter.py --project . query --question "<вопрос>"
+   ~~~
+9. Сформируй findings по единому контракту и выведи отчёт на русском.
+10. Ничего не изменяй в проекте или глобальной конфигурации в v0.1.
 
 ## References загружаются только по необходимости
 
@@ -44,6 +53,7 @@ description: Использовать, когда нужно измерить и
 - Capability detection → [provider-capabilities.md](references/provider-capabilities.md).
 - CodeBurn → [codeburn-adapter.md](references/codeburn-adapter.md).
 - Context ingress → [context-ingress.md](references/context-ingress.md).
+- Graphify → [graphify-adapter.md](references/graphify-adapter.md).
 - Mutation/rollback в будущих версиях → [approval-model.md](references/approval-model.md).
 - Matreshka Agent → [matreshka-integration.md](references/matreshka-integration.md).
 
