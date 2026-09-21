@@ -9,13 +9,13 @@ description: Использовать, когда нужно измерить и
 
 Навык проводит аудит контекста AI-агента и помогает уменьшать ненужный overhead без подмены измерений оценками.
 
-В текущей версии `v0.1` режим строго **READ_ONLY**.
+Текущий режим `v0.1` — **READ_ONLY**.
 
 ## Базовый процесс
 
 1. Определи project root и фактический harness.
 2. Проверь доступные capabilities, а не предполагай их по названию платформы.
-3. Запусти project-local read-only scan:
+3. Запусти project-local environment scan:
    ~~~bash
    python skills/context-optimizer/scripts/scan_environment.py --project .
    ~~~
@@ -23,16 +23,24 @@ description: Использовать, когда нужно измерить и
    ~~~bash
    python skills/context-optimizer/scripts/audit_static_context.py --project .
    ~~~
-5. Если доступен CodeBurn, используй его как внешний runtime telemetry source. Не выдавай его оценки за provider counters без маркировки.
-6. Сформируй findings по единому контракту.
+5. Если CodeBurn уже доступен, используй read-only adapter:
+   ~~~bash
+   python skills/context-optimizer/scripts/codeburn_adapter.py --command optimize
+   ~~~
+   Для конкретной Codex/Claude Code сессии допускается:
+   ~~~bash
+   python skills/context-optimizer/scripts/codeburn_adapter.py --command context --provider codex --session <id>
+   ~~~
+6. Нормализуй findings по единому контракту и не смешивай типы измерений.
 7. Выведи отчёт на русском языке.
-8. Ничего не изменяй в v0.1.
+8. Ничего не изменяй в проекте или глобальной конфигурации в v0.1.
 
 ## Когда читать references
 
 - Для любой числовой метрики прочитай [measurement-model.md](references/measurement-model.md).
 - Для findings прочитай [finding-contract.md](references/finding-contract.md).
 - Для capability detection прочитай [provider-capabilities.md](references/provider-capabilities.md).
+- При использовании CodeBurn прочитай [codeburn-adapter.md](references/codeburn-adapter.md).
 - Перед любым будущим mutation-flow прочитай [approval-model.md](references/approval-model.md).
 - При работе из Matreshka Agent прочитай [matreshka-integration.md](references/matreshka-integration.md).
 
@@ -43,6 +51,9 @@ description: Использовать, когда нужно измерить и
 - `BYTE_COUNT` не является token count.
 - `chars / N` — только `HEURISTIC_ESTIMATE`.
 - Если точного runtime measurement нет, используй `UNKNOWN`.
+- CodeBurn `basis=measured` можно сохранять как provider-measured provenance только с явной ссылкой на CodeBurn как источник агрегации.
+- CodeBurn health grade не является нашим `CONTEXT_HEALTH`.
+- Не запускай `codeburn optimize --apply` из v0.1.
 - Не удаляй и не отключай MCP/skills.
 - Не переписывай AGENTS.md, CLAUDE.md или GEMINI.md.
 - Не устанавливай CodeBurn, Caveman или Graphify без отдельного approval.
