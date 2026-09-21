@@ -1,150 +1,106 @@
 # План реализации
 
-## Gate 0 — Provenance и базовая структура
-**PASS с административным follow-up**
-- [x] Источники и лицензии.
-- [x] Русскоязычный README.
-- [ ] Переименовать репозиторий `Matreshk-context-optimizer` → `Matreshka-context-optimizer` через GitHub repository settings.
-- [x] GitHub short description установлен.
-
-## Gate 1 — Спецификация v0.1
+## Gate 0–2 — Основа и контракты
 **PASS**
-- [x] Goal/non-goals.
-- [x] Measurement model.
-- [x] Safety/approval.
-- [x] Capability model.
-- [x] Matreshka integration boundary.
+- [x] provenance model;
+- [x] measurement/finding/audit/plan schemas;
+- [x] safety/approval model;
+- [x] русскоязычная основная документация.
 
-## Gate 2 — Finding contract
+## Gate 3 — Static Audit
 **PASS**
-- [x] measurement/finding/audit/plan schemas.
-- [x] evidence + provenance + risk + statuses.
-
-## Gate 3 — Read-only MVP
-**IMPLEMENTED / REAL PROJECT PILOT PENDING**
-- [x] environment scan.
-- [x] exact static bytes.
-- [x] duplicate instruction lines.
-- [x] skill inventory/scope.
-- [x] Graphify/external CLI detection.
-- [x] smoke test.
-
-## Gate 4 — CodeBurn Compatibility Adapter
-**IMPLEMENTED / OPTIONAL ORACLE-FALLBACK**
-- [x] optimize/context/doctor read-only adapter.
-- [x] version provenance.
-- [x] measured vs estimated basis.
-- [x] context tree provenance documented.
-- [x] offline smoke test.
-
-## Gate 5 — Собственные аудиторы
-**IMPLEMENTED / PILOT PENDING**
-- [x] Instruction hygiene review signals.
-- [x] Skill body/description review.
-- [x] Skill routing-overlap signal.
+- [x] environment scan;
+- [x] exact static bytes;
+- [x] instruction duplication/hygiene;
+- [x] skill inventory/scope;
 - [x] MCP config inventory.
-- [x] MCP duplicate registration.
-- [x] missing local MCP command.
-- [x] aggregate read-only audit.
-- [ ] semantic conflict detection — после пилота и только с evidence model.
 
-## Gate 6 — Context Ingress Audit
-**IMPLEMENTED / PILOT PENDING**
-- [x] CodeBurn context-tree analyzer.
-- [x] exact-vs-estimated provenance.
-- [x] tool-result dominance signal.
-- [x] payload type/byte/line analysis.
-- [x] repeated-line ingress detection.
-- [x] large-payload review signal.
+## Gate 4 — Нативная Runtime Telemetry
+**PASS / HARDENING CONTINUES**
+- [x] Codex local session discovery/provider counters;
+- [x] Claude Code JSONL usage parser;
+- [x] Antigravity read-only SQLite decoder;
+- [x] current-context provenance;
+- [x] file/tool/skill/MCP events;
+- [x] cache opt-in only;
+- [ ] legacy Antigravity `.pb` decoder;
+- [ ] Claude cross-file resumed-session dedup hardening.
 
-## Gate 7 — Graphify Adapter
-**IMPLEMENTED / PILOT PENDING**
-- [x] external-only architecture; Graphify code не копируется;
-- [x] CLI/version detection;
-- [x] project-scoped install detection для Codex/Claude/Antigravity/Agent-Skills;
-- [x] graph presence + nodes/edges/basic stats;
-- [x] project source profile;
-- [x] evidence-based recommendation;
-- [x] heuristic size recommendation с явным provenance;
-- [x] mtime stale signal;
-- [x] plan-only install/build/update;
-- [x] read-only graph query;
-- [x] отдельный approval на каждый mutation step;
-- [x] smoke test.
+## Gate 5–6 — Собственные аудиторы и Context Ingress
+**PASS**
+- [x] instruction hygiene;
+- [x] skill body/description/overlap signals;
+- [x] MCP duplicate/broken-local-command signals;
+- [x] payload byte/line/type analysis;
+- [x] repeated ingress detection;
+- [x] tool-result dominance;
+- [x] compaction/repeated-read signals.
+
+## Gate 7 — Нативная карта проекта
+**PASS**
+- [x] project area/file inventory;
+- [x] source/test/docs/config classification;
+- [x] navigation pressure LOW/MEDIUM/HIGH;
+- [x] area-first routing rule;
+- [x] без внешних runtime dependencies.
 
 ## Gate 8 — Apply / Backup / Rollback
-**IMPLEMENTED / PILOT PENDING**
+**PASS**
 - [x] one-change-per-run;
-- [x] dry-run without mutation;
+- [x] dry-run;
 - [x] exact approval token;
 - [x] expected-before SHA-256;
-- [x] project-boundary protection + explicit global override;
+- [x] project-boundary protection;
 - [x] backup before mutation;
-- [x] REPLACE_EXACT_TEXT;
-- [x] JSON_SET;
-- [x] MOVE_PATH;
+- [x] exact text / JSON / path operations;
 - [x] post-change validation;
-- [x] auto-restore on apply failure;
-- [x] rollback refuses to overwrite later changes.
+- [x] hash-safe rollback.
 
 ## Gate 9 — Optimization Ledger
-**IMPLEMENTED / PILOT PENDING**
-- [x] append-only JSONL ledger;
-- [x] APPLIED / ROLLED_BACK / VERIFICATION events;
-- [x] KEEP / ROLLBACK / UNVERIFIED / NEEDS_MORE_DATA decisions;
-- [x] metrics and quality kept separate;
-- [x] per-change history and summary;
-- [x] runtime state excluded from future context audits.
+**PASS**
+- [x] append-only history;
+- [x] APPLIED / ROLLED_BACK / VERIFICATION;
+- [x] KEEP / ROLLBACK / UNVERIFIED / NEEDS_MORE_DATA;
+- [x] metrics and quality separated.
 
 ## Gate 10 — Matreshka Agent Bridge
-**PASS / INTEGRATED WITH MATRESHKA AGENT**
-- [x] compact bridge schema;
-- [x] deterministic bridge builder;
-- [x] exact runtime-vs-static separation;
+**PASS / V0.3 INTEGRATION UPDATE IN PROGRESS**
+- [x] compact bridge;
+- [x] runtime-vs-static separation;
 - [x] top findings/recommendations cap;
-- [x] Graphify compact state;
-- [x] Optimization Ledger pending-verification projection;
+- [x] native `projectMap`;
+- [x] trigger projection;
+- [x] ledger pending-verification projection;
 - [x] approval state projection;
-- [x] CodeBurn optimize savings rejected as current runtime usage;
-- [x] bridge smoke test;
-- [x] Matreshka Agent controller/ledger/dashboard wiring;
+- [ ] Matreshka controller auto-invocation rules v0.3;
+- [ ] dashboard section/tab v0.3.
 
-## Gate 11 — Реальные benchmark/evals
-**IMPLEMENTED HARNESS / REAL STATIC PILOT AUTOMATED / RUNTIME SAVINGS EVIDENCE PENDING**
-- [x] benchmark run schema;
-- [x] benchmark result schema;
-- [x] comparability checks;
+## Gate 11 — Before/After Benchmark
+**HARNESS PASS / PRODUCTION EVIDENCE PENDING**
+- [x] comparable-run schemas;
 - [x] PASS / FAIL / UNVERIFIED evaluator;
-- [x] quality-regression gates;
-- [x] heuristic/static measurements cannot produce runtime PASS;
-- [x] package-layout skill discovery;
-- [x] real read-only Matreshka Agent pilot in CI;
-- [x] target-cleanliness verification;
-- [ ] comparable provider-measured before/after agent sessions;
+- [x] quality regression gates;
+- [x] static/heuristic measurements cannot produce runtime PASS;
+- [x] real repository read-only pilot;
+- [ ] comparable provider-measured production before/after sessions.
 
-Acceptance remains: measured context/token cost ↓ при task success >= baseline, retries/errors/wrong-file reads <= baseline и information loss = NO.
+## Gate 12 — Commands and Trigger Policy
+**IMPLEMENTED / MATRESHKA WIRING IN PROGRESS**
+- [x] `start`;
+- [x] `adopt`;
+- [x] `resume`;
+- [x] `check`;
+- [x] `status`;
+- [x] `optimize`;
+- [x] deterministic trigger policy;
+- [x] anti-overhead rule: no full audit on every message;
+- [x] Russian user messages;
+- [ ] end-to-end Matreshka controller smoke.
 
-## Gate 12 — Native Telemetry Engine
-**CORE IMPLEMENTED / REAL LOCAL CORPUS PARITY PENDING**
-- [x] собственный telemetry package без runtime dependency на CodeBurn;
-- [x] Codex strict local session discovery;
-- [x] Codex provider-measured token parser;
-- [x] Codex cumulative/dedup guards;
-- [x] exact byte-level context composition;
-- [x] file-read / skill / MCP / tool event extraction;
-- [x] native waste detectors;
-- [x] user-level cache, выключенный по умолчанию;
-- [x] Claude Code native JSONL usage parser;
-- [x] safe Antigravity static discovery;
-- [x] Antigravity existing-statusline parser без process probe/RPC;
-- [x] native telemetry schema;
-- [x] Matreshka bridge принимает native current-context measurement;
-- [x] CodeBurn comparison tool как optional test oracle;
-- [x] synthetic multi-provider smoke suite;
-- [ ] parity-check на реальном пользовательском Codex corpus против CodeBurn;
-- [x] direct safe Antigravity SQLite DB decoder без live RPC;
-- [ ] legacy Antigravity `.pb` decoder без live RPC;
-- [ ] Claude cross-file resumed-session dedup hardening;
-- [ ] comparable native provider-measured BEFORE/AFTER production sessions.
+## Acceptance
 
-После Gate 12 CodeBurn имеет статус REFERENCE / OPTIONAL_ORACLE / COMPATIBILITY, а не REQUIRED_DEPENDENCY.
+Оптимизация считается успешной только когда измеренный context/token cost уменьшается при сохранённом task success, без роста retries/errors/wrong-file reads и без потери нужной информации.
+
+## Административно
+
+- [ ] При желании переименовать репозиторий `Matreshk-context-optimizer` → `Matreshka-context-optimizer` через GitHub settings.
