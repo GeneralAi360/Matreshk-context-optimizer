@@ -1,0 +1,287 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://generalai360.github.io/matreshka-context-optimizer/schemas/matreshka-bridge.schema.json",
+  "title": "Matreshka Context Optimizer Bridge",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "status",
+    "health",
+    "healthBasis",
+    "runtimeMeasurement",
+    "staticContext",
+    "staticRisk",
+    "topFindings",
+    "recommendations",
+    "graphify",
+    "ledger",
+    "approvalRequired",
+    "source"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "0.1"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "READY",
+        "DEGRADED",
+        "UNAVAILABLE"
+      ]
+    },
+    "health": {
+      "type": "string",
+      "enum": [
+        "OK",
+        "WARNING",
+        "CRITICAL",
+        "UNKNOWN"
+      ]
+    },
+    "healthBasis": {
+      "type": "string",
+      "enum": [
+        "MEASURED",
+        "PARTIAL",
+        "STATIC_ONLY",
+        "UNKNOWN"
+      ]
+    },
+    "runtimeMeasurement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "value",
+        "unit",
+        "type",
+        "source",
+        "semantics"
+      ],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "AVAILABLE",
+            "PARTIAL",
+            "UNAVAILABLE",
+            "UNKNOWN"
+          ]
+        },
+        "value": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "unit": {
+          "type": "string",
+          "enum": [
+            "tokens",
+            "unknown"
+          ]
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "PROVIDER_MEASURED",
+            "TOOL_MEASURED",
+            "TOKENIZER_ESTIMATE",
+            "HEURISTIC_ESTIMATE",
+            "UNKNOWN"
+          ]
+        },
+        "source": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "semantics": {
+          "type": "string",
+          "enum": [
+            "CURRENT_CONTEXT",
+            "OBSERVED_SUBSET",
+            "UNKNOWN"
+          ]
+        }
+      }
+    },
+    "staticContext": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "value",
+        "unit",
+        "source",
+        "fileCount"
+      ],
+      "properties": {
+        "value": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "unit": {
+          "const": "bytes"
+        },
+        "source": {
+          "const": "instruction-file inventory"
+        },
+        "fileCount": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "staticRisk": {
+      "type": "string",
+      "enum": [
+        "OK",
+        "WARNING",
+        "CRITICAL",
+        "UNKNOWN"
+      ]
+    },
+    "topFindings": {
+      "type": "array",
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "category",
+          "title",
+          "confidence",
+          "qualityRisk",
+          "action"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "confidence": {
+            "type": "string"
+          },
+          "qualityRisk": {
+            "type": "string"
+          },
+          "action": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "recommendations": {
+      "type": "array",
+      "maxItems": 8,
+      "items": {
+        "type": "string"
+      }
+    },
+    "graphify": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "reason"
+      ],
+      "properties": {
+        "state": {
+          "type": "string",
+          "enum": [
+            "NOT_NEEDED",
+            "RECOMMENDED",
+            "INSTALLED",
+            "READY",
+            "STALE",
+            "UNKNOWN"
+          ]
+        },
+        "reason": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "ledger": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "changeCount",
+        "pendingVerification",
+        "rollbackRecommended",
+        "latestDecision"
+      ],
+      "properties": {
+        "changeCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "pendingVerification": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "rollbackRecommended": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "latestDecision": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "approvalRequired": {
+      "type": "boolean"
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "auditSchemaVersion",
+        "runtimeSource",
+        "graphifySource",
+        "ledgerSource"
+      ],
+      "properties": {
+        "auditSchemaVersion": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "runtimeSource": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "graphifySource": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "ledgerSource": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    }
+  }
+}
