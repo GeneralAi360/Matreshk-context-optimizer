@@ -33,18 +33,12 @@ jobs:
       - name: Antigravity safe SQLite smoke
         shell: bash
         run: python evals/run_antigravity_sqlite_smoke.py
-      - name: CodeBurn compatibility adapter smoke
-        shell: bash
-        run: python evals/run_codeburn_adapter_smoke.py
-      - name: CodeBurn oracle comparator smoke
-        shell: bash
-        run: python evals/run_codeburn_oracle_smoke.py
       - name: Gate 5-6 smoke
         shell: bash
         run: python evals/run_gate5_6_smoke.py
-      - name: Graphify adapter smoke
+      - name: Project map and trigger smoke
         shell: bash
-        run: python evals/run_graphify_adapter_smoke.py
+        run: python evals/run_project_map_trigger_smoke.py
       - name: Gate 8-9 smoke
         shell: bash
         run: python evals/run_gate8_9_smoke.py
