@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Read-only environment scanner for Matreshka Context Optimizer v0.1."""
+"""Read-only environment scanner for Matreshka Context Optimizer."""
 
 from __future__ import annotations
 
@@ -7,7 +7,6 @@ import argparse
 import json
 import os
 import platform
-import shutil
 import sys
 from pathlib import Path
 from typing import Iterable
@@ -122,17 +121,10 @@ def discover_configs(root: Path) -> list[dict]:
     ]
 
 
-def cli_state(name: str) -> dict:
-    path = shutil.which(name)
-    return {"available": bool(path), "path": path}
-
-
 def build_report(root: Path, include_global: bool) -> dict:
     instructions = discover_instruction_files(root)
     skills = discover_skills(root, include_global=include_global)
     configs = discover_configs(root)
-
-    graph_path = root / "graphify-out" / "graph.json"
 
     capabilities = {
         "PROJECT_INSTRUCTIONS_DISCOVERY": "SUPPORTED",
@@ -142,9 +134,8 @@ def build_report(root: Path, include_global: bool) -> dict:
         "SESSION_CONTEXT_TREE": "UNKNOWN",
         "LOCAL_TRANSCRIPTS": "UNKNOWN",
         "HOOK_DISCOVERY": "UNKNOWN",
-        "REPOSITORY_GRAPH_NAVIGATION": "SUPPORTED" if graph_path.exists() else "UNKNOWN",
-        "EXTERNAL_CLI": "SUPPORTED",
-        "ROLLBACK_SUPPORT": "UNSUPPORTED",
+        "NATIVE_PROJECT_MAP": "SUPPORTED",
+        "ROLLBACK_SUPPORT": "SUPPORTED",
     }
 
     return {
@@ -158,15 +149,6 @@ def build_report(root: Path, include_global: bool) -> dict:
             "instructions": instructions,
             "skills": skills,
             "configs": configs,
-            "external_tools": {
-                "codeburn": cli_state("codeburn"),
-                "caveman": cli_state("caveman"),
-                "graphify": cli_state("graphify"),
-            },
-            "graphify": {
-                "graph_exists": graph_path.exists(),
-                "graph_path": str(graph_path.resolve()) if graph_path.exists() else None,
-            },
         },
         "capabilities": capabilities,
     }
