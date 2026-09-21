@@ -48,6 +48,9 @@ jobs:
       - name: Benchmark evaluator smoke
         shell: bash
         run: python evals/run_benchmark_evaluator_smoke.py
+      - name: Auto command and baseline snapshot smoke
+        shell: bash
+        run: python evals/run_auto_command_smoke.py
   real-matreshka-pilot:
     runs-on: ubuntu-latest
     steps:

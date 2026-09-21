@@ -40,7 +40,8 @@ python skills/context-optimizer/scripts/context_optimizer.py --project . <comman
 - `resume` — перепроверка после паузы или восстановления run;
 - `check` — событийная проверка при признаках перегрузки;
 - `status` — текущее состояние контекста;
-- `optimize` — подготовить план оптимизации без автоматического применения изменений.
+- `optimize` — подготовить план оптимизации без автоматического применения изменений;
+- `auto` — внутренний режим Matreshka: принять компактный JSON сигнал, самому решить `start/adopt/resume/check/skip`.
 
 Пример:
 
@@ -103,11 +104,13 @@ RESUME
 - изменилась MCP/tool-конфигурация;
 - структура проекта сильно изменилась.
 
-Детерминированная проверка:
+Для Matreshka предпочтителен единый внутренний вызов без временного файла:
 
 ~~~bash
-python skills/context-optimizer/scripts/trigger_policy.py --signal-json signal.json
+python skills/context-optimizer/scripts/context_optimizer.py --project . --signal '{"scenario":"NEW_PROJECT","baseline_exists":false}' auto
 ~~~
+
+Сам optimizer решает, нужна ли проверка, и если нет — возвращает `SKIPPED/NO_TRIGGER`.
 
 ## Что измеряется
 
@@ -190,6 +193,8 @@ projectMap
 topFindings
 recommendations
 ledger
+snapshotId
+capturedAt
 trigger
 approvalRequired
 ~~~
@@ -224,7 +229,8 @@ Matreshka должна показывать отдельный блок/вкла
 - что ожидает проверки;
 - что требует подтверждения;
 - причину последнего автоматического запуска;
-- следующую рекомендуемую проверку.
+- следующую рекомендуемую проверку;
+- ID базового снимка (`snapshotId`) для сохранения в ledger/dashboard.
 
 Пользовательские подписи — на русском.
 

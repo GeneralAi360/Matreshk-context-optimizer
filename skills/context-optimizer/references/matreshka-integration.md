@@ -14,11 +14,13 @@ Optimizer отвечает за измерение, диагностику, ре
 python <context-optimizer-root>/scripts/context_optimizer.py --project <project-root> <command>
 ~~~
 
-Команды: `start`, `adopt`, `resume`, `check`, `status`, `optimize`.
+Команды: `start`, `adopt`, `resume`, `check`, `status`, `optimize`. Для автоматики Matreshka использует внутреннюю команду `auto` и передаёт компактный JSON сигнал.
 
 Matreshka не должна молча скачивать или устанавливать skill. Если peer skill не найден, dashboard показывает «Оптимизатор контекста недоступен», а разработка продолжается без выдуманных измерений.
 
 ## Автоматические сценарии
+
+Matreshka не должна самостоятельно копировать числовые пороги. Она передаёт наблюдаемые сигналы в `auto`, а skill возвращает решение `start/adopt/resume/check/skip`.
 
 - `NEW_PROJECT` без baseline → `start` до массового implementation fan-out;
 - `EXISTING_PROJECT` без baseline → `adopt` после read-only orientation и до архитектурных изменений;
@@ -41,6 +43,7 @@ python skills/context-optimizer/scripts/matreshka_bridge.py \
 Ключевые поля:
 
 ~~~text
+snapshotId / capturedAt
 status
 health / healthBasis
 runtimeMeasurement
@@ -50,7 +53,7 @@ projectMap
 topFindings[]
 recommendations[]
 ledger
-trigger
+trigger.mode / trigger.reason / trigger.nextCheck
 approvalRequired
 source
 ~~~
@@ -68,3 +71,7 @@ source
 Отдельный раздел/вкладка «Контекст» показывает состояние простыми русскими формулировками: текущий контекст, статические инструкции, карта проекта, проблемы, рекомендации, pending verification, причина последней проверки и необходимость подтверждения.
 
 Dashboard ничего не меняет сам и не расширяет полномочия.
+
+## Baseline
+
+`start`, `adopt` и `resume` возвращают `baseline_candidate` с `snapshot_id`. Сам optimizer не обязан писать baseline на диск: Matreshka сохраняет компактный bridge/snapshot в своём ledger/dashboard только при наличии обычной state-write authority. Это сохраняет read-only поведение optimizer по умолчанию.

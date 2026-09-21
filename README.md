@@ -41,6 +41,7 @@ python skills/context-optimizer/scripts/context_optimizer.py --project . resume
 python skills/context-optimizer/scripts/context_optimizer.py --project . check
 python skills/context-optimizer/scripts/context_optimizer.py --project . status
 python skills/context-optimizer/scripts/context_optimizer.py --project . optimize
+python skills/context-optimizer/scripts/context_optimizer.py --project . --signal '{"scenario":"NEW_PROJECT","baseline_exists":false}' auto
 ~~~
 
 `optimize` готовит предложения, но не применяет изменения без отдельного подтверждения.
@@ -51,7 +52,8 @@ python skills/context-optimizer/scripts/context_optimizer.py --project . optimiz
 - первое подключение к готовому проекту → `adopt`;
 - возобновление после паузы при отсутствующем/устаревшем baseline → `resume`;
 - evidence перегрузки → `check`;
-- отсутствие нового evidence → полный аудит не запускается.
+- отсутствие нового evidence → полный аудит не запускается;
+- в режиме `auto` решение принимается внутри skill, чтобы Matreshka не дублировала пороги.
 
 ## Измерения
 
@@ -73,6 +75,8 @@ projectMap
 topFindings
 recommendations
 ledger
+snapshotId
+capturedAt
 trigger
 approvalRequired
 ~~~

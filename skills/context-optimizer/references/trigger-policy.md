@@ -48,14 +48,20 @@ Run возобновлён после паузы и baseline отсутству�
 → отобразить причину в dashboard
 ~~~
 
-Детерминированный evaluator:
+Низкоуровневый evaluator остаётся доступен для тестов, но Matreshka должна использовать единый `auto` entrypoint:
 
 ~~~bash
-python skills/context-optimizer/scripts/trigger_policy.py --signal-json signal.json
+python skills/context-optimizer/scripts/context_optimizer.py --project . --signal '{"scenario":"CONTINUE_PROJECT","baseline_exists":true,"repeated_file_reads":4}' auto
 ~~~
+
+Это исключает расхождение порогов между Matreshka и skill.
 
 ## Защита от лишних запусков
 
 Если нет нового evidence, возвращать `NO_TRIGGER`. Не запускать полный аудит на каждом сообщении, каждом tool call или каждом task transition.
 
 После автоматического `check` не повторять тот же аудит, пока не изменился хотя бы один значимый сигнал или не началась новая задача с отдельным context envelope.
+
+## Baseline semantics
+
+`baseline_exists` означает, что controller сохранил предыдущий compact bridge/snapshot (`snapshotId`) и может подтвердить его источник. Сам факт старого dashboard без source identity не считается baseline.
