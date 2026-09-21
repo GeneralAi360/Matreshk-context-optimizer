@@ -97,7 +97,17 @@
 - [x] runtime state excluded from future context audits.
 
 ## Gate 10 — Matreshka Agent Bridge
-**PLANNED**
+**IMPLEMENTED IN OPTIMIZER / MATRESHKA-SIDE WIRING IN PROGRESS**
+- [x] compact bridge schema;
+- [x] deterministic bridge builder;
+- [x] exact runtime-vs-static separation;
+- [x] top findings/recommendations cap;
+- [x] Graphify compact state;
+- [x] Optimization Ledger pending-verification projection;
+- [x] approval state projection;
+- [x] CodeBurn optimize savings rejected as current runtime usage;
+- [x] bridge smoke test;
+- [ ] Matreshka Agent controller/ledger/dashboard wiring;
 
 ## Gate 11 — Реальные benchmark/evals
 **PLANNED**

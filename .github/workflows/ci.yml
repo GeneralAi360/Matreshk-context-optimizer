@@ -39,3 +39,6 @@ jobs:
       - name: Gate 8-9 smoke
         shell: bash
         run: python evals/run_gate8_9_smoke.py
+      - name: Matreshka bridge smoke
+        shell: bash
+        run: python evals/run_matreshka_bridge_smoke.py

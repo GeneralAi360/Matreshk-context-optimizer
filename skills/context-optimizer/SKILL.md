@@ -9,7 +9,7 @@ description: Использовать, когда нужно измерить и
 
 Навык проводит аудит контекста AI-агента и помогает уменьшать ненужный overhead без подмены измерений оценками.
 
-Текущий режим `v0.1` — **READ_ONLY**.
+Режим `v0.1` по умолчанию — **READ_ONLY**. Reversible mutation разрешён только через отдельный approved `CHG-xxx` после dry-run.
 
 ## Основной запуск
 
@@ -57,7 +57,7 @@ description: Использовать, когда нужно измерить и
 - Apply/rollback → [apply-rollback.md](references/apply-rollback.md).
 - Optimization Ledger → [optimization-ledger.md](references/optimization-ledger.md).
 - Mutation/rollback в будущих версиях → [approval-model.md](references/approval-model.md).
-- Matreshka Agent → [matreshka-integration.md](references/matreshka-integration.md).
+- Matreshka Agent / compact bridge → [matreshka-integration.md](references/matreshka-integration.md).
 
 Не загружай все references заранее.
 
@@ -89,3 +89,12 @@ python skills/context-optimizer/scripts/change_executor.py --project . apply --c
 ~~~
 
 После измерений запиши verification в Optimization Ledger. При необходимости выполняй rollback только через hash-safe rollback token.
+## Compact bridge для Matreshka Agent
+
+После аудита сформируй только компактную проекцию, а не передавай весь audit/ledger в controller:
+
+~~~bash
+python skills/context-optimizer/scripts/matreshka_bridge.py --audit audit.json --runtime runtime.json --graphify graphify.json --ledger ledger.json --output context-optimizer-bridge.json
+~~~
+
+Runtime tokens и static bytes всегда остаются раздельными. Bridge не является authority на mutation.
