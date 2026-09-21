@@ -60,7 +60,9 @@ def main() -> int:
     assert static_bridge["runtimeMeasurement"]["type"] == "UNKNOWN"
     assert static_bridge["projectMap"]["pressure"] == "MEDIUM"
     assert static_bridge["trigger"]["automatic"] is True
-    assert static_bridge["approvalRequired"] is True\n    assert static_bridge["snapshotId"].startswith("CTXSNAP-")\n    assert static_bridge["trigger"]["nextCheck"]
+    assert static_bridge["approvalRequired"] is True
+    assert static_bridge["snapshotId"].startswith("CTXSNAP-")
+    assert static_bridge["trigger"]["nextCheck"]
 
     runtime = {
         "engine": "Matreshka Context Telemetry",
