@@ -16,6 +16,7 @@ def run_json(script: Path, *args: str) -> dict:
         check=True,
         capture_output=True,
         text=True,
+            encoding="utf-8",
     )
     return json.loads(proc.stdout)
 
