@@ -49,3 +49,8 @@ MEASURE → DIAGNOSE → CLASSIFY → RECOMMEND
 Начиная с Gate 8 изменения могут применяться только как отдельные `CHG-xxx` с dry-run, exact approval, SHA-256 baseline, backup и hash-safe rollback. Сам факт finding не даёт права на mutation.
 
 Optimization Ledger хранит отдельно события применения, отката и quality verification. `APPLIED` не считается `VERIFIED`.
+## Benchmark и реальные пилоты
+
+Gate 10 интегрирован с Matreshka Agent через compact bridge. Gate 11 содержит before/after evaluator и CI-пилот на реальном `matreshka-agent` checkout.
+
+Runtime savings считаются подтверждёнными только по сопоставимым provider/tool-measured before/after сессиям без quality regression. Пока таких пар нет, verdict остаётся `UNVERIFIED` — static bytes и эвристики его не заменяют.

@@ -1,0 +1,136 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://generalai360.github.io/matreshka-context-optimizer/schemas/benchmark-run.schema.json",
+  "title": "Context Optimizer Benchmark Run",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "run_id",
+    "task_id",
+    "task_class",
+    "provider",
+    "model",
+    "tokens",
+    "quality",
+    "source"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.1"
+    },
+    "run_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "task_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "task_class": {
+      "type": "string",
+      "minLength": 1
+    },
+    "provider": {
+      "type": "string",
+      "minLength": 1
+    },
+    "model": {
+      "type": "string",
+      "minLength": 1
+    },
+    "tokens": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "value",
+        "metric",
+        "measurement_type",
+        "source"
+      ],
+      "properties": {
+        "value": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "metric": {
+          "type": "string",
+          "enum": [
+            "TOTAL_RUN_TOKENS",
+            "CURRENT_CONTEXT_TOKENS"
+          ]
+        },
+        "measurement_type": {
+          "type": "string",
+          "enum": [
+            "PROVIDER_MEASURED",
+            "TOOL_MEASURED",
+            "TOKENIZER_ESTIMATE",
+            "HEURISTIC_ESTIMATE",
+            "UNKNOWN"
+          ]
+        },
+        "source": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "quality": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "task_success",
+        "retries",
+        "errors",
+        "wrong_file_reads",
+        "information_loss"
+      ],
+      "properties": {
+        "task_success": {
+          "type": "boolean"
+        },
+        "retries": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "errors": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "wrong_file_reads": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "information_loss": {
+          "type": "string",
+          "enum": [
+            "NO",
+            "YES",
+            "UNKNOWN"
+          ]
+        }
+      }
+    },
+    "elapsed_seconds": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "source": {
+      "type": "string",
+      "minLength": 1
+    },
+    "notes": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  }
+}

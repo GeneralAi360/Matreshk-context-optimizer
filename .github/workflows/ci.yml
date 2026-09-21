@@ -42,3 +42,29 @@ jobs:
       - name: Matreshka bridge smoke
         shell: bash
         run: python evals/run_matreshka_bridge_smoke.py
+      - name: Benchmark evaluator smoke
+        shell: bash
+        run: python evals/run_benchmark_evaluator_smoke.py
+  real-matreshka-pilot:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Context Optimizer
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Checkout Matreshka Agent
+        uses: actions/checkout@v4
+        with:
+          repository: GeneralAi360/matreshka-agent
+          ref: main
+          path: .pilot/matreshka-agent
+      - name: Run real read-only pilot
+        shell: bash
+        run: |
+          python evals/run_real_repository_pilot.py --project .pilot/matreshka-agent/plugins/matreshka-agent --output .pilot/context-optimizer-pilot.json
+          cat .pilot/context-optimizer-pilot.json
+      - name: Verify target checkout stayed clean
+        shell: bash
+        run: test -z "$(git -C .pilot/matreshka-agent status --porcelain)"

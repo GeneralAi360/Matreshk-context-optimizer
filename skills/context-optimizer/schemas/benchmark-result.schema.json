@@ -1,0 +1,116 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://generalai360.github.io/matreshka-context-optimizer/schemas/benchmark-result.schema.json",
+  "title": "Context Optimizer Before/After Benchmark Result",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "verdict",
+    "comparable",
+    "reasons",
+    "token_delta",
+    "quality"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.1"
+    },
+    "verdict": {
+      "type": "string",
+      "enum": [
+        "PASS",
+        "FAIL",
+        "UNVERIFIED"
+      ]
+    },
+    "comparable": {
+      "type": "boolean"
+    },
+    "reasons": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "token_delta": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "before",
+        "after",
+        "absolute",
+        "percent"
+      ],
+      "properties": {
+        "before": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "after": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "absolute": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "percent": {
+          "type": [
+            "number",
+            "null"
+          ]
+        }
+      }
+    },
+    "quality": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "task_success_preserved",
+        "retries_non_increasing",
+        "errors_non_increasing",
+        "wrong_file_reads_non_increasing",
+        "information_loss_absent"
+      ],
+      "properties": {
+        "task_success_preserved": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "retries_non_increasing": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "errors_non_increasing": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "wrong_file_reads_non_increasing": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "information_loss_absent": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        }
+      }
+    }
+  }
+}
