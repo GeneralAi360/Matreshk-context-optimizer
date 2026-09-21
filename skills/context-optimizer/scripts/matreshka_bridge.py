@@ -74,6 +74,47 @@ def runtime_from_context_payload(payload: dict[str, Any] | None) -> dict[str, An
     if not payload:
         return unknown
 
+    # Native Matreshka Context Telemetry. Only session context fields with
+    # PROVIDER_MEASURED provenance are eligible; aggregate spend is never
+    # reinterpreted as current context.
+    if payload.get("engine") == "Matreshka Context Telemetry":
+        provider = str(payload.get("provider") or "unknown")
+        sessions = payload.get("sessions")
+        if isinstance(sessions, list):
+            for session in sessions:
+                if not isinstance(session, dict):
+                    continue
+                context = session.get("context")
+                if not isinstance(context, dict):
+                    continue
+                value = context.get("reported_context_tokens")
+                measurement_type = context.get("reported_context_measurement_type")
+                if (
+                    isinstance(value, (int, float))
+                    and value >= 0
+                    and measurement_type == "PROVIDER_MEASURED"
+                ):
+                    raw_semantics = str(context.get("reported_context_semantics") or "")
+                    if provider == "codex":
+                        current_semantics = {"", "CURRENT_CONTEXT"}
+                    elif provider == "antigravity":
+                        current_semantics = {"", "CURRENT_CONTEXT", "STATUSLINE_CURRENT_USAGE"}
+                    else:
+                        current_semantics = set()
+                    semantics = (
+                        "CURRENT_CONTEXT"
+                        if raw_semantics in current_semantics
+                        else "OBSERVED_SUBSET"
+                    )
+                    return {
+                        "status": "AVAILABLE" if semantics == "CURRENT_CONTEXT" else "PARTIAL",
+                        "value": value,
+                        "unit": "tokens",
+                        "type": "PROVIDER_MEASURED",
+                        "source": f"matreshka-native:{provider}",
+                        "semantics": semantics,
+                    }
+
     # Output from analyze_context_tree.py.
     measurements = payload.get("measurements")
     if isinstance(measurements, list):

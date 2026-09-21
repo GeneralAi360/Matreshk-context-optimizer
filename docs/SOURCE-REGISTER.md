@@ -31,19 +31,21 @@
 
 Repository: https://github.com/getagentseal/codeburn
 
-**Тип:** `EXTERNAL_DEPENDENCY + IDEA_ADAPTED`
+**Тип:** `REFERENCE_ONLY + IDEA_ADAPTED + OPTIONAL_TEST_ORACLE`
 
 Лицензия: MIT.
 
-Используем:
+Использовали как технический референс:
 
-- runtime/session measurement;
-- context inspection;
-- optimize findings;
-- provider-specific telemetry;
+- документированные local-session layouts;
+- provider counter semantics;
+- edge cases dedup/cumulative usage;
+- context-tree semantics;
 - идеи re-measure и undo/report.
 
-Не планируется форк или копирование CodeBurn целиком.
+Начиная с v0.2 штатная telemetry реализована независимо в Matreshka Context Telemetry. CodeBurn не является обязательной dependency и не устанавливается автоматически. Существующий adapter сохраняется только как compatibility/oracle path.
+
+Код CodeBurn целыми модулями в native engine не vendor'ится; собственная реализация имеет отдельные schemas/tests и более узкую safety-модель.
 
 ## SOURCE-003 — Caveman
 

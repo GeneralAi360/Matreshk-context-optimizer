@@ -36,23 +36,26 @@ UNSUPPORTED
 UNKNOWN
 ```
 
+## Native Matreshka Context Telemetry
+
+Основной runtime telemetry path — собственный engine:
+- Codex: `SUPPORTED` для local rollout discovery/provider counters;
+- Claude Code: `SUPPORTED/PARTIAL` для local JSONL usage; cross-file resume dedup пока отдельный hardening item;
+- Antigravity: `PARTIAL` — безопасный static/statusline mode без live RPC/process probe.
+
+Если native provider не может доказать counter semantics, capability остаётся `PARTIAL`/ `UNKNOWN`.
+
 ## CodeBurn
 
-CodeBurn рассматривается как основной telemetry adapter, если:
-
-- установлен/доступен;
-- provider поддерживается нужной командой;
-- данные текущей среды действительно обнаружены.
-
-Наличие CodeBurn не означает, что все команды дают одинаковую глубину по всем providers.
+CodeBurn — optional compatibility/oracle capability, а не requirement. Если он уже установлен, его можно использовать для parity-check или дополнительного read-only evidence. Его отсутствие не деградирует native Codex telemetry.
 
 ## Codex
 
 Проверять фактически:
 
 - наличие local session data;
-- доступность CodeBurn provider parsing;
-- context command support;
+- доступность native Codex rollout parsing;
+- provider-measured current-context semantics;
 - skill directories;
 - project/global scope;
 - subagent/token usage counters.
@@ -66,13 +69,14 @@ CodeBurn рассматривается как основной telemetry adapte
 - project/global skills;
 - hooks;
 - transcripts;
-- CodeBurn optimize support.
+- native Claude JSONL parsing;
+- optional CodeBurn oracle availability.
 
 Нельзя переносить Claude-specific settings на другие harnesses.
 
 ## Antigravity / agy
 
-CodeBurn upstream содержит provider support для Antigravity, включая local-surface discovery, но optimizer обязан отдельно проверять, какие именно данные доступны в текущей установке.
+Native Antigravity v0.2 намеренно избегает live language-server process probe/RPC и работает в safe partial mode. CodeBurn upstream может использоваться только как внешний референс/oracle для недостающих форматов.
 
 Если runtime контекст нельзя измерить:
 

@@ -101,6 +101,25 @@ def main() -> int:
     assert bridge["ledger"]["pendingVerification"] == 1
     assert bridge["approvalRequired"] is True
 
+    native_runtime = {
+        "engine": "Matreshka Context Telemetry",
+        "provider": "codex",
+        "sessions": [
+            {
+                "session_id": "native-1",
+                "context": {
+                    "reported_context_tokens": 22222,
+                    "reported_context_measurement_type": "PROVIDER_MEASURED",
+                    "reported_context_semantics": "CURRENT_CONTEXT",
+                },
+            }
+        ],
+    }
+    native_bridge = mb.build_bridge(audit, runtime=native_runtime)
+    assert native_bridge["runtimeMeasurement"]["value"] == 22222
+    assert native_bridge["runtimeMeasurement"]["source"] == "matreshka-native:codex"
+    assert native_bridge["runtimeMeasurement"]["semantics"] == "CURRENT_CONTEXT"
+
     # CodeBurn optimize token savings must NOT be accepted as current runtime context.
     optimize_like = {
         "findings": [
