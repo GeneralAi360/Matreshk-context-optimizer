@@ -34,10 +34,15 @@ CodeBurn остаётся внешним референсом, optional compatib
 
 Ограничение v0.2: cross-file streaming-message dedup между несколькими resumed files ещё не считается FULL guarantee. При спорной ситуации provider state должен быть PARTIAL, а не выдумываться.
 
-### Antigravity — SAFE PARTIAL
+### Antigravity — SAFE SQLITE NATIVE + PARTIAL PB
 
 - статическое обнаружение `.gemini/antigravity*` conversation sources;
+- прямое read-only декодирование SQLite `.db` через built-in Python `sqlite3`;
+- минимальный независимый protobuf-wire decoder для `gen_metadata` и `steps`;
+- provider-measured usage из `gen_metadata`;
+- tool / MCP / skill extraction из referenced `steps`;
 - optional parsing уже существующего statusline JSONL;
+- `.pb` старого формата пока остаётся static-only;
 - **нет** live process probe;
 - **нет** `ps/lsof`/PowerShell process scanning;
 - **нет** локального HTTPS/RPC;
@@ -45,7 +50,7 @@ CodeBurn остаётся внешним референсом, optional compatib
 - **нет** hook install;
 - **нет** записи в conversation DB/PB.
 
-Прямой безопасный DB/PB decoder можно добавить позже независимо, после отдельного fixture/eval пакета.
+SQLite открывается с `mode=ro` + `PRAGMA query_only=ON`. `immutable=1` намеренно не используется, чтобы безопасно видеть committed WAL rows активной базы.
 
 ## Безопасность
 
@@ -84,13 +89,13 @@ python skills/context-optimizer/scripts/native_telemetry.py --provider claude
 
 ### Antigravity
 
-Без statusline native engine делает только безопасный static discovery:
+Без statusline native engine автоматически делает безопасный static discovery и read-only декодирует найденные SQLite `.db`:
 
 ~~~bash
 python skills/context-optimizer/scripts/native_telemetry.py --provider antigravity
 ~~~
 
-Если уже существует trusted statusline JSONL:
+Если уже существует trusted statusline JSONL, его можно использовать как отдельный current-usage source:
 
 ~~~bash
 python skills/context-optimizer/scripts/native_telemetry.py --provider antigravity --statusline <file>
