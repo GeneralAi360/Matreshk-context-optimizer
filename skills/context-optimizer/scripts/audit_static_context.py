@@ -242,20 +242,6 @@ def audit(root: Path, include_global: bool) -> dict:
         )
         next_id += 1
 
-    graph_state = scan["environment"]["graphify"]
-    if graph_state["graph_exists"]:
-        measurements.append(
-            measurement(
-                1,
-                "count",
-                "TOOL_MEASURED",
-                "filesystem",
-                "HIGH",
-                method="graphify-out/graph.json existence check",
-                notes="Graphify graph detected; this does not prove freshness.",
-            )
-        )
-
     static_risk = "WARNING" if findings else "OK"
 
     return {
