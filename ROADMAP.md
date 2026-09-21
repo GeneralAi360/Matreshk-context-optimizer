@@ -58,8 +58,19 @@
 - [x] large-payload review signal.
 
 ## Gate 7 — Graphify Adapter
-**PLANNED**
-Graphify остаётся optional project-local dependency; install только после evidence + approval.
+**IMPLEMENTED / PILOT PENDING**
+- [x] external-only architecture; Graphify code не копируется;
+- [x] CLI/version detection;
+- [x] project-scoped install detection для Codex/Claude/Antigravity/Agent-Skills;
+- [x] graph presence + nodes/edges/basic stats;
+- [x] project source profile;
+- [x] evidence-based recommendation;
+- [x] heuristic size recommendation с явным provenance;
+- [x] mtime stale signal;
+- [x] plan-only install/build/update;
+- [x] read-only graph query;
+- [x] отдельный approval на каждый mutation step;
+- [x] smoke test.
 
 ## Gate 8 — Apply / Backup / Rollback
 **PLANNED**
