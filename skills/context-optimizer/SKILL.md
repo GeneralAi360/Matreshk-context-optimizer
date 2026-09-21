@@ -9,7 +9,7 @@ description: Использовать, когда нужно измерить и
 
 Навык проводит аудит контекста AI-агента и помогает уменьшать ненужный overhead без подмены измерений оценками.
 
-Режим `v0.1` по умолчанию — **READ_ONLY**. Reversible mutation разрешён только через отдельный approved `CHG-xxx` после dry-run.
+Режим `v0.2` по умолчанию — **READ_ONLY**. Reversible mutation разрешён только через отдельный approved `CHG-xxx` после dry-run.
 
 ## Основной запуск
 
@@ -20,15 +20,12 @@ description: Использовать, когда нужно измерить и
    python skills/context-optimizer/scripts/audit_extended.py --project .
    ~~~
 4. Если нужны глобальные skills/MCP, добавь `--include-global` явно.
-5. Если CodeBurn уже установлен, запусти read-only adapter:
+5. Для runtime/session telemetry сначала используй собственный engine:
    ~~~bash
-   python skills/context-optimizer/scripts/codeburn_adapter.py --command optimize
+   python skills/context-optimizer/scripts/native_telemetry.py --provider codex --output runtime.json
    ~~~
-6. Для конкретной Codex/Claude Code сессии получи context tree через adapter, затем проанализируй его:
-   ~~~bash
-   python skills/context-optimizer/scripts/codeburn_adapter.py --command context --provider codex --session <id> --output context.json
-   python skills/context-optimizer/scripts/analyze_context_tree.py --input context.json
-   ~~~
+   Для Claude замени provider на `claude`. Для Antigravity по умолчанию выполняется safe static discovery; существующий statusline можно передать через `--statusline <file>`.
+6. CodeBurn не требуется. Если он уже установлен и нужен parity-check/compatibility evidence, используй [compatibility adapter](references/codeburn-adapter.md) отдельно; не устанавливай его автоматически.
 7. Большой log/JSON/diff/tool output можно отдельно проверить:
    ~~~bash
    python skills/context-optimizer/scripts/analyze_payload.py --input <file>
@@ -51,7 +48,8 @@ description: Использовать, когда нужно измерить и
 - Finding contract → [finding-contract.md](references/finding-contract.md).
 - Слои аудита → [audit-model.md](references/audit-model.md).
 - Capability detection → [provider-capabilities.md](references/provider-capabilities.md).
-- CodeBurn → [codeburn-adapter.md](references/codeburn-adapter.md).
+- Native telemetry → [native-telemetry.md](references/native-telemetry.md).
+- CodeBurn compatibility/oracle → [codeburn-adapter.md](references/codeburn-adapter.md).
 - Context ingress → [context-ingress.md](references/context-ingress.md).
 - Graphify → [graphify-adapter.md](references/graphify-adapter.md).
 - Apply/rollback → [apply-rollback.md](references/apply-rollback.md).
@@ -67,7 +65,8 @@ description: Использовать, когда нужно измерить и
 - `BYTE_COUNT` не является token count.
 - `chars / N` — только `HEURISTIC_ESTIMATE`.
 - Если точного runtime measurement нет, используй `UNKNOWN`.
-- В CodeBurn context tree `reported.context` и block-level token counts имеют разное provenance.
+- Native provider counters и byte-level context composition имеют разное provenance; bytes не превращаются в tokens.
+- В optional CodeBurn oracle `reported.context` и block-level token counts также имеют разное provenance.
 - CodeBurn health grade не является нашим `CONTEXT_HEALTH`.
 - Не запускай `codeburn optimize --apply` из v0.1.
 - Не удаляй и не отключай MCP/skills.
@@ -75,7 +74,8 @@ description: Использовать, когда нужно измерить и
 - Перед mutation всегда делай dry-run и сверяй `expected_before_sha256`.
 - Один apply = один `CHG-xxx`; batch mutation запрещён.
 - После apply статус остаётся непроверенным, пока нет re-measure + quality verification.
-- Не устанавливай CodeBurn, Caveman или Graphify без отдельного approval.
+- Не устанавливай CodeBurn автоматически: штатная telemetry должна работать без него.
+- Не устанавливай Caveman или Graphify без отдельного approval.
 - Не строй Graphify graph только потому, что Graphify существует.
 - Не копируй Caveman Engine.
 - Порог размера/overlap — review signal, не доказательство мусора.
