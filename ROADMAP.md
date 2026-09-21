@@ -15,11 +15,11 @@
 
 Статус: **PASS**
 
-- [x] Определить цель и non-goals.
-- [x] Определить модель измерений.
-- [x] Определить safety/approval policy.
-- [x] Определить первичную capability model.
-- [x] Определить интеграционную границу с Matreshka Agent.
+- [x] Цель и non-goals.
+- [x] Measurement model.
+- [x] Safety/approval policy.
+- [x] Capability model.
+- [x] Граница интеграции с Matreshka Agent.
 
 ## Gate 2 — Единый контракт Finding
 
@@ -29,47 +29,35 @@
 - [x] finding schema;
 - [x] audit report schema;
 - [x] optimization plan schema;
-- [x] evidence requirement;
-- [x] measurement provenance;
-- [x] expected effect;
-- [x] quality risk;
-- [x] approval state;
-- [x] verification-ready statuses.
+- [x] evidence + provenance + risk + status.
 
 ## Gate 3 — Read-only MVP
 
 Статус: **IMPLEMENTED / NEEDS REAL PROJECT PILOT**
 
-Первая рабочая версия ничего не меняет:
-
-~~~text
-SCAN → MEASURE → AUDIT → REPORT
-~~~
-
-Реализовано:
-
 - [x] compact `SKILL.md`;
 - [x] environment scanner;
-- [x] static instruction byte measurements;
-- [x] exact cross-file duplicate detection;
-- [x] project/global skill inventory;
-- [x] skill scope collision detection;
-- [x] Graphify graph presence detection;
-- [x] external CLI availability detection;
-- [x] no-dependency smoke test;
-- [x] запрет на fake token conversion.
-
-Следующий acceptance gate: запуск на реальном проекте и сверка отчёта вручную.
+- [x] exact static BYTE_COUNT;
+- [x] cross-file duplicate detection;
+- [x] skill inventory/scope collision;
+- [x] Graphify presence detection;
+- [x] external CLI detection;
+- [x] smoke test;
+- [x] no fake token conversion.
 
 ## Gate 4 — CodeBurn Adapter
 
-Статус: **PLANNED**
+Статус: **IMPLEMENTED / NEEDS REAL CODEBURN PILOT**
 
-- detect;
-- version check;
-- provider capabilities;
-- overview/audit/context/optimize JSON;
-- normalization into our findings.
+- [x] detect CodeBurn in PATH;
+- [x] capture version;
+- [x] read-only `optimize --format json`;
+- [x] read-only `context --json` for Claude/Codex;
+- [x] read-only `doctor --json`;
+- [x] normalize `measured` vs `estimated` basis;
+- [x] preserve raw finding id/class/fix;
+- [x] never execute `--apply`;
+- [x] offline fixture smoke test.
 
 ## Gate 5 — Собственные аудиторы
 
@@ -115,13 +103,9 @@ FINDING → EVIDENCE → EXPECTED EFFECT → RISK
 
 Статус: **PLANNED**
 
-История изменений, измерений и решений KEEP / ROLLBACK / UNVERIFIED.
-
 ## Gate 10 — Matreshka Agent Bridge
 
 Статус: **PLANNED**
-
-В Matreshka Agent передаётся компактный capability/result contract, а не весь optimizer.
 
 ## Gate 11 — Реальные benchmark/evals
 
