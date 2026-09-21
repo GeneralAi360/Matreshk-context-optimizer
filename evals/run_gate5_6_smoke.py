@@ -102,40 +102,32 @@ def main() -> int:
         assert "INGRESS_LARGE_PAYLOAD" in payload_categories
         assert "INGRESS_HIGH_REPETITION" in payload_categories
 
-        context_path = project / "context.json"
-        context_path.write_text(
-            json.dumps(
-                {
-                    "reported": {"context": 12000, "window": 200000},
-                    "effective": {
-                        "tokens": 10000,
-                        "toolResult": {"count": 12, "tokens": 6000},
+        sys.path.insert(0, str(scripts))
+        from context_telemetry.detectors import detect_session_waste
+
+        native_findings = detect_session_waste(
+            {
+                "session_id": "fixture",
+                "events": {"file_reads": ["a.py", "a.py", "a.py"], "skills": []},
+                "context": {
+                    "breakdown_bytes": {
+                        "system_bytes": 1000,
+                        "user_text_bytes": 1000,
+                        "user_meta_bytes": 0,
+                        "developer_bytes": 0,
+                        "assistant_text_bytes": 1000,
+                        "tool_call_bytes": 1000,
+                        "tool_result_bytes": 70000,
+                        "compaction_bytes": 0,
                     },
-                }
-            ),
-            encoding="utf-8",
+                    "compactions": 2,
+                },
+            }
         )
-        context_report = run_json(
-            scripts / "analyze_context_tree.py",
-            "--input",
-            str(context_path),
-        )
-        exact = [
-            item
-            for item in context_report["measurements"]
-            if item["measurement_type"] == "PROVIDER_MEASURED"
-        ]
-        estimated = [
-            item
-            for item in context_report["measurements"]
-            if item["measurement_type"] == "HEURISTIC_ESTIMATE"
-        ]
-        assert exact and exact[0]["value"] == 12000
-        assert estimated
-        assert any(
-            item["category"] == "TOOL_RESULT_DOMINANCE"
-            for item in context_report["findings"]
-        )
+        native_categories = {item["category"] for item in native_findings}
+        assert "NATIVE_REPEATED_FILE_READS" in native_categories
+        assert "NATIVE_TOOL_RESULT_DOMINANCE" in native_categories
+        assert "NATIVE_FREQUENT_COMPACTION" in native_categories
 
     print("PASS: gate 5-6 smoke")
     return 0
