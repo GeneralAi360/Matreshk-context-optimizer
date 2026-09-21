@@ -1,0 +1,4 @@
+.context-optimizer/
+graphify-out/
+__pycache__/
+*.pyc

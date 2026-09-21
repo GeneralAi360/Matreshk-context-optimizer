@@ -1,0 +1,106 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://generalai360.github.io/matreshka-context-optimizer/schemas/ledger-event.schema.json",
+  "title": "Context Optimizer Optimization Ledger Event",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "event_id",
+    "timestamp",
+    "event_type",
+    "change_id",
+    "status",
+    "finding_ids"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.1"
+    },
+    "event_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "event_type": {
+      "type": "string",
+      "enum": [
+        "APPLIED",
+        "ROLLED_BACK",
+        "VERIFICATION"
+      ]
+    },
+    "change_id": {
+      "type": "string",
+      "pattern": "^CHG-[0-9]{3,}$"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "APPLIED",
+        "ROLLED_BACK",
+        "KEEP",
+        "ROLLBACK",
+        "UNVERIFIED",
+        "NEEDS_MORE_DATA",
+        "FAILED"
+      ]
+    },
+    "finding_ids": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^CTX-[0-9]{3,}$"
+      }
+    },
+    "target": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "operation": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "before": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "additionalProperties": true
+    },
+    "after": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "additionalProperties": true
+    },
+    "metrics": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "additionalProperties": true
+    },
+    "quality": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "additionalProperties": true
+    },
+    "notes": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  }
+}

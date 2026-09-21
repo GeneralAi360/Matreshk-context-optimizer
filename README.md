@@ -44,3 +44,8 @@ MEASURE → DIAGNOSE → CLASSIFY → RECOMMEND
 В текущей версии **никакие настройки, MCP, skills или instruction files автоматически не изменяются**.
 
 Следующий этап — real-project pilot, расширение собственных аудиторов и Context Ingress Audit.
+## Reversible optimization
+
+Начиная с Gate 8 изменения могут применяться только как отдельные `CHG-xxx` с dry-run, exact approval, SHA-256 baseline, backup и hash-safe rollback. Сам факт finding не даёт права на mutation.
+
+Optimization Ledger хранит отдельно события применения, отката и quality verification. `APPLIED` не считается `VERIFIED`.

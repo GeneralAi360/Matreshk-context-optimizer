@@ -24,6 +24,7 @@ SKIP_DIRS = {
     ".venv",
     "venv",
     "__pycache__",
+    ".context-optimizer",
 }
 
 def _configure_utf8_stdio() -> None:

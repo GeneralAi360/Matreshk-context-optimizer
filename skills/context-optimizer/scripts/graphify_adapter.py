@@ -32,6 +32,7 @@ SKIP_DIRS = {
     ".venv",
     "venv",
     "__pycache__",
+    ".context-optimizer",
 }
 
 SOURCE_EXTENSIONS = {
