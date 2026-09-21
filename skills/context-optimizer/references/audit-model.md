@@ -2,14 +2,15 @@
 
 ## Слои
 
-Read-only аудит v0.1 разделён на независимые слои:
+Read-only аудит разделён на независимые слои:
 
 1. **STATIC_CONTEXT** — точные bytes instruction/skill файлов и exact duplicate lines.
 2. **INSTRUCTION_HYGIENE** — кандидаты на progressive disclosure, history/progress и временные правила.
 3. **SKILLS** — размер body, длина description, scope collision и routing overlap.
 4. **MCP_CONFIG** — регистрации MCP, дубли по имени и локальные команды, которые не обнаружены.
-5. **CODEBURN** — runtime/session evidence, когда внешний CodeBurn доступен.
-6. **CONTEXT_INGRESS** — большие/repetitive payload и CodeBurn context-tree composition.
+5. **NATIVE_TELEMETRY** — локальные provider/session counters и события.
+6. **CONTEXT_INGRESS** — большие/repetitive payload и runtime ingress signals.
+7. **PROJECT_MAP** — нативная карта областей и navigation pressure.
 
 ## Принцип доказательности
 
