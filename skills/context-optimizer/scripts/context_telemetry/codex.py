@@ -114,8 +114,8 @@ def discover_sessions(codex_home: Path | None = None) -> list[dict[str, Any]]:
             continue
         payload = first.get("payload") or {}
         cwd = payload.get("cwd") if isinstance(payload.get("cwd"), str) else None
-        session_id = payload.get("session_id") if isinstance(payload.get("session_id"), str) else None
-        if not session_id:
+        session_id = payload.get("id") or payload.get("session_id")
+        if not isinstance(session_id, str) or not session_id:
             session_id = path.stem.removeprefix("rollout-")
         fp = fingerprint(path)
         result.append({
@@ -339,8 +339,8 @@ def parse_session(path: Path, *, archived: bool = False) -> dict[str, Any]:
             payload_type = str(payload.get("type") or "")
 
             if entry_type == "session_meta":
-                if isinstance(payload.get("session_id"), str):
-                    session_id = payload["session_id"]
+                if isinstance(payload.get("id") or payload.get("session_id"), str):
+                    session_id = payload.get("id") or payload["session_id"]
                 if isinstance(payload.get("cwd"), str):
                     cwd = payload["cwd"]
                     project = basename_project(cwd)
@@ -474,7 +474,7 @@ def parse_session(path: Path, *, archived: bool = False) -> dict[str, Any]:
         "context": {
             "reported_context_tokens": current_context_tokens,
             "reported_context_measurement_type": "PROVIDER_MEASURED" if current_context_tokens is not None else "UNKNOWN",
-            "reported_context_semantics": "CURRENT_CONTEXT" if current_context_tokens is not None else "UNKNOWN",
+            "reported_context_semantics": "LAST_REQUEST_TOTAL" if current_context_tokens is not None else "UNKNOWN",
             "context_window_tokens": context_window,
             "breakdown_unit": "bytes",
             "breakdown_bytes_full": full,

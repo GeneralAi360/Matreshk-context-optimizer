@@ -24,6 +24,8 @@ jobs:
         shell: bash
         run: |
           python -m compileall -q skills/context-optimizer/scripts evals
+      - name: v0.4 pipeline and standalone regression
+        run: python -B -m unittest discover -s evals -p "test_v04_*.py" -v
       - name: Static audit smoke
         shell: bash
         run: python evals/run_static_audit_smoke.py

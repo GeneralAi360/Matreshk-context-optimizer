@@ -107,3 +107,18 @@
 ## Административно
 
 - [ ] При желании переименовать репозиторий `Matreshk-context-optimizer` → `Matreshka-context-optimizer` через GitHub settings.
+
+## v0.4 — Автономная версия для новичков
+**В РАЗРАБОТКЕ. Не считать весь этап завершённым по тестам прежней версии.**
+- [x] Исправление effective/full byte breakdown в нативном детекторе.
+- [x] Проектный отбор сессий до лимита; приведение runtime findings к общему отчёту.
+- [x] Сквозные тесты provider-shaped JSONL → parser → detector → report.
+- [x] Автономное сохранение аудит / Markdown / HTML / STATE без Matreshka Agent.
+- [x] Content-bound предпросмотр и подтверждение блока памяти проекта.
+- [x] Явный finish без ложного PASS по одному уменьшению bytes.
+- [x] Разбор двух файлов пользовательского архива и письменное ревью.
+- [ ] Установщик с manifest, безопасным обновлением и удалением только собственных файлов.
+- [ ] Быстрые команды и проверка открытия внутри Codex / Claude Code / Cursor / Antigravity.
+- [ ] Сквозной путь approved proposal → hardened change executor → реальная quality verification.
+- [ ] Автоматическая фиксация завершения сессии там, где host даёт подтверждённый lifecycle hook.
+- [ ] Реальные provider-measured пары before/after и проверки на пользовательском компьютере.

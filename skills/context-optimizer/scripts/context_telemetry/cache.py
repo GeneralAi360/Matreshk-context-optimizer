@@ -7,7 +7,7 @@ import tempfile
 from pathlib import Path
 from typing import Any
 
-CACHE_VERSION = 1
+CACHE_VERSION = 2
 
 
 def default_cache_dir() -> Path:
