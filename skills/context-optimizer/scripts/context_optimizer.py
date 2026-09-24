@@ -7,8 +7,8 @@ import argparse
 import json
 import os
 import sys
+sys.dont_write_bytecode = True
 from pathlib import Path
-from types import SimpleNamespace
 from typing import Any
 
 SCRIPT_DIR = Path(__file__).resolve().parent
@@ -17,67 +17,31 @@ if str(SCRIPT_DIR) not in sys.path:
 
 import audit_extended
 import matreshka_bridge
-import native_telemetry
 import project_map
 import trigger_policy
-from context_telemetry.common import aggregate_usage
+import runtime_audit
 from optimization_ledger import summary as ledger_summary
 
 
 def detect_provider() -> str | None:
+    candidates = []
     codex_home = Path(os.environ.get("CODEX_HOME", Path.home() / ".codex"))
     if (codex_home / "sessions").exists() or (codex_home / "archived_sessions").exists():
-        return "codex"
+        candidates.append("codex")
 
     claude_home = Path(
         os.environ.get("CLAUDE_CONFIG_DIR", Path.home() / ".claude")
     )
     if (claude_home / "projects").exists():
-        return "claude"
+        candidates.append("claude")
 
     gemini = Path.home() / ".gemini"
     if any(
         (gemini / name).exists()
         for name in ("antigravity", "antigravity-cli", "antigravity-ide")
     ):
-        return "antigravity"
-    return None
-
-
-def _same_project(cwd: str | None, project: Path) -> bool:
-    if not cwd:
-        return False
-    try:
-        return Path(cwd).expanduser().resolve() == project.resolve()
-    except OSError:
-        return False
-
-
-def _filter_runtime(
-    report: dict[str, Any],
-    project: Path,
-) -> dict[str, Any]:
-    sessions = report.get("sessions")
-    if not isinstance(sessions, list):
-        return report
-
-    matched = [
-        session
-        for session in sessions
-        if isinstance(session, dict)
-        and _same_project(
-            session.get("cwd")
-            if isinstance(session.get("cwd"), str)
-            else None,
-            project,
-        )
-    ]
-    filtered = dict(report)
-    filtered["sessions"] = matched
-    filtered["usage"] = aggregate_usage(matched)
-    filtered["project_filter"] = str(project.resolve())
-    filtered["project_sessions"] = len(matched)
-    return filtered
+        candidates.append("antigravity")
+    return candidates[0] if len(candidates) == 1 else None
 
 
 def collect_runtime(
@@ -88,24 +52,7 @@ def collect_runtime(
     if provider is None:
         return None
 
-    ns = SimpleNamespace(
-        provider=provider,
-        root=telemetry_root,
-        session_prefix=None,
-        limit=25,
-        use_cache=False,
-        cache_dir=None,
-        statusline=None,
-        output=None,
-    )
-    if provider == "codex":
-        report = native_telemetry.collect_codex(ns)
-    elif provider == "claude":
-        report = native_telemetry.collect_claude(ns)
-    else:
-        report = native_telemetry.collect_antigravity(ns)
-
-    return _filter_runtime(report, project)
+    return runtime_audit.collect(provider, project, telemetry_root)
 
 
 def command_message(
@@ -136,6 +83,7 @@ def command_message(
         ),
         "check": "Проверка контекста выполнена по текущему состоянию проекта.",
         "status": "Текущее состояние контекста обновлено.",
+        "finish": "Сессия завершена. Сохраните итог и проверьте сопоставимость измерений.",
         "optimize": (
             "Подготовлен план оптимизации. "
             "Никакие изменения не применялись автоматически."
@@ -164,12 +112,19 @@ def run_command(
         include_global=include_global,
     )
     pmap = project_map.build_project_map(project)
-    runtime = collect_runtime(provider, project, telemetry_root)
+    warnings = []
+    try:
+        runtime = collect_runtime(provider, project, telemetry_root)
+    except (OSError, ValueError, RuntimeError):
+        runtime = None
+        warnings.append("Телеметрия недоступна. Статический аудит выполнен; расход токенов неизвестен.")
+    runtime_audit.merge(audit, runtime)
 
     try:
         ledger = ledger_summary(project)
-    except Exception:
+    except (OSError, ValueError, RuntimeError):
         ledger = None
+        warnings.append("Журнал изменений не удалось прочитать. Нельзя считать, что изменений не было.")
 
     bridge = matreshka_bridge.build_bridge(
         audit,
@@ -190,6 +145,9 @@ def run_command(
         "provider": provider,
         "message_ru": command_message(command, bridge),
         "bridge": bridge,
+        "audit": audit,
+        "runtime": runtime,
+        "warnings": warnings + ((runtime or {}).get("warnings", [])),
     }
 
     if command in {"start", "adopt", "resume"}:
@@ -289,6 +247,7 @@ def main() -> int:
         ),
     )
     parser.add_argument("--output")
+    parser.add_argument("--full", action="store_true", help="Вывести полный аудит (по умолчанию только компактный bridge)")
 
     sub = parser.add_subparsers(dest="command", required=True)
     for name in (
@@ -353,6 +312,8 @@ def main() -> int:
         )
         return 2
 
+    if not args.full:
+        result = {k: v for k, v in result.items() if k not in {"audit", "runtime"}}
     rendered = json.dumps(result, ensure_ascii=False, indent=2)
     if args.output:
         out = Path(args.output).expanduser().resolve()

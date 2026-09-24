@@ -12,7 +12,7 @@ from typing import Any
 
 SKIP_DIRS = {
     ".git", ".hg", ".svn", "node_modules", "vendor", "dist", "build",
-    ".next", ".venv", "venv", "__pycache__", ".context-optimizer",
+    ".next", ".venv", "venv", "__pycache__", ".context-optimizer", ".context-optimizer-installer",
     ".matreshka/runs",
 }
 SOURCE_EXTENSIONS = {

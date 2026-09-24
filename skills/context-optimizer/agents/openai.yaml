@@ -1,0 +1,6 @@
+interface:
+  display_name: "Оптимизатор контекста"
+  short_description: "Аудит контекста, отчёты и память проекта"
+  default_prompt: "Используй $context-optimizer help, чтобы выбрать режим аудита."
+policy:
+  allow_implicit_invocation: true

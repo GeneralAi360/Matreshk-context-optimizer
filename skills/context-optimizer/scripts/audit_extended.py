@@ -59,7 +59,11 @@ def audit_extended(root: Path, include_global: bool = False) -> dict[str, Any]:
     summary["context_health"] = "UNKNOWN"
 
     report["environment"] = environment
-    report["measurements"] = measurements
+    unique = {}
+    for metric in measurements:
+        key = json.dumps(metric, sort_keys=True, ensure_ascii=False)
+        unique[key] = metric
+    report["measurements"] = list(unique.values())
     report["findings"] = findings
     report["summary"] = summary
     report["audit_layers"] = [
