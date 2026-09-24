@@ -1,3 +1,5 @@
 .context-optimizer/
 __pycache__/
 *.pyc
+
+.context-optimizer-installer/

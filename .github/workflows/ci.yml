@@ -12,7 +12,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-latest, windows-latest, macos-latest]
         python: ['3.11']
     runs-on: ${{ matrix.os }}
     steps:
@@ -23,7 +23,7 @@ jobs:
       - name: Compile Python
         shell: bash
         run: |
-          python -m compileall -q skills/context-optimizer/scripts evals
+          python -m compileall -q install.py skills/context-optimizer/scripts evals
       - name: v0.4 pipeline and standalone regression
         run: python -B -m unittest discover -s evals -p "test_v04_*.py" -v
       - name: Static audit smoke
