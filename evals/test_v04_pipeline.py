@@ -114,7 +114,7 @@ class Standalone(Environment, unittest.TestCase):
         root=self.project/st.STATE_DIR;root.mkdir();(root/'state.lock').write_text('other')
         with self.assertRaises(ValueError):
             st.save_result(self.project,self.run_audit())
-        self.assertEqual((root/'state.lock').read_text(),'other')
+        self.assertEqual((root/'state.lock').read_text(encoding='utf-8'),'other')
     def test_memory_preserves_other_bytes_and_needs_approval(self):
         st.save_result(self.project,self.run_audit())
         original=b'Original user rules\r\nNO DELETE\r\n'
@@ -132,7 +132,7 @@ class Standalone(Environment, unittest.TestCase):
         plan=st.remember(self.project,'codex',None)
         (self.project/'AGENTS.md').write_text('changed',encoding='utf-8')
         with self.assertRaises(ValueError):st.remember(self.project,'codex',plan['approval'])
-        self.assertEqual((self.project/'AGENTS.md').read_text(),'changed')
+        self.assertEqual((self.project/'AGENTS.md').read_text(encoding='utf-8'),'changed')
     def test_state_symlink_refused(self):
         outside=self.base/'outside';outside.mkdir()
         try:(self.project/st.STATE_DIR).symlink_to(outside,target_is_directory=True)
@@ -153,12 +153,12 @@ class Standalone(Environment, unittest.TestCase):
         st.save_result(self.project,self.run_audit())
         pointer=st.load(self.project,st.STATE_DIR+'/latest.json');aid=pointer['audit_id']
         path=self.project/st.STATE_DIR/'audits'/aid/'audit.json'
-        doc=json.loads(path.read_text());doc['project_identity']='wrong';path.write_text(json.dumps(doc))
+        doc=json.loads(path.read_text(encoding='utf-8'));doc['project_identity']='wrong';path.write_text(json.dumps(doc),encoding='utf-8')
         with self.assertRaises(ValueError):st.read_latest(self.project)
     def test_secret_redaction_and_html_escape(self):
         result=self.run_audit();result['message_ru']='password=secret-value <script>alert(1)</script>'
         locations=st.save_result(self.project,result)
-        text=(self.project/locations['html']).read_text()
+        text=(self.project/locations['html']).read_text(encoding='utf-8')
         self.assertNotIn('secret-value',text)
         self.assertNotIn('<script>',text)
     def test_finished_baseline_rotates_only_on_new_start(self):
