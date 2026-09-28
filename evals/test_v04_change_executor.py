@@ -45,7 +45,7 @@ class ChangeExecutor(unittest.TestCase):
         self.temp = tempfile.TemporaryDirectory()
         self.root = Path(self.temp.name)
         self.target = self.root / "AGENTS.md"
-        self.target.write_text("A\nB\n", encoding="utf-8")
+        self.target.write_bytes(b"A\nB\n")
 
     def tearDown(self):
         self.temp.cleanup()
@@ -89,7 +89,7 @@ class ChangeExecutor(unittest.TestCase):
     def test_target_change_invalidates_preview(self):
         change = self.change()
         dry = ce.dry_run(self.root, change, allow_global=False)
-        self.target.write_text("A\nB\nUSER\n", encoding="utf-8")
+        self.target.write_bytes(b"A\nB\nUSER\n")
         with self.assertRaises(ce.ChangeError):
             ce.apply_change(
                 self.root,
@@ -122,7 +122,7 @@ class ChangeExecutor(unittest.TestCase):
     def test_backup_corruption_blocks_rollback(self):
         applied = self.apply()
         backup = Path(applied["backup"])
-        backup.write_text("corrupt", encoding="utf-8")
+        backup.write_bytes(b"corrupt")
         with self.assertRaises(ce.ChangeError):
             ce.rollback_change(
                 self.root,
@@ -134,7 +134,7 @@ class ChangeExecutor(unittest.TestCase):
 
     def test_post_apply_user_edit_blocks_rollback(self):
         applied = self.apply()
-        self.target.write_text("A\nC\nUSER\n", encoding="utf-8")
+        self.target.write_bytes(b"A\nC\nUSER\n")
         with self.assertRaises(ce.ChangeError):
             ce.rollback_change(
                 self.root,
