@@ -13,6 +13,9 @@ sys.path.insert(0, str(SCRIPTS))
 
 from quality_verifier import VerificationError, evaluate_runs, load_object
 
+# Backward-compatible import surface for existing smoke/eval callers.
+evaluate = evaluate_runs
+
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Evaluate before/after optimization runs")
