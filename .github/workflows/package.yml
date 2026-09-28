@@ -1,7 +1,7 @@
 name: Context source package
 on:
   push:
-    branches: [main, 'dev/context-optimizer-v0.4-standalone']
+    branches: [main]
   workflow_dispatch:
 permissions:
   contents: read
@@ -15,27 +15,62 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Package tracked source only
+      - name: Stage tracked source and manifest
         run: |
           python - <<'PY'
-          import hashlib, json, pathlib, subprocess, zipfile
-          files = subprocess.check_output(['git','ls-files','-z']).decode().split('\0')
+          import hashlib, json, pathlib, shutil, subprocess
+
+          root = pathlib.Path.cwd()
+          stage = root / 'dist' / 'context-optimizer-v0.4'
+          if stage.exists():
+              shutil.rmtree(stage)
+          stage.mkdir(parents=True)
+
+          names = [
+              x for x in
+              subprocess.check_output(['git', 'ls-files', '-z']).decode().split('\0')
+              if x
+          ]
           manifest = {}
-          with zipfile.ZipFile('context-optimizer-source.zip','w',zipfile.ZIP_DEFLATED) as archive:
-              for name in sorted(filter(None,files)):
-                  path=pathlib.Path(name)
-                  if path.is_symlink(): raise SystemExit('Symlink not allowed in package')
-                  data=path.read_bytes()
-                  manifest[name]=hashlib.sha256(data).hexdigest()
-                  info=zipfile.ZipInfo(name, (2026,1,1,0,0,0))
-                  info.compress_type=zipfile.ZIP_DEFLATED
-                  archive.writestr(info,data)
-              archive.writestr('PACKAGE-MANIFEST.json',json.dumps({'commit':subprocess.check_output(['git','rev-parse','HEAD']).decode().strip(),'files':manifest},sort_keys=True,indent=2))
-          print(hashlib.sha256(pathlib.Path('context-optimizer-source.zip').read_bytes()).hexdigest())
+          for name in sorted(names):
+              source = root / name
+              if source.is_symlink():
+                  raise SystemExit(f'Symlink not allowed in package: {name}')
+              if not source.is_file():
+                  continue
+              data = source.read_bytes()
+              manifest[name] = hashlib.sha256(data).hexdigest()
+              destination = stage / name
+              destination.parent.mkdir(parents=True, exist_ok=True)
+              destination.write_bytes(data)
+
+          commit = subprocess.check_output(
+              ['git', 'rev-parse', 'HEAD'],
+              text=True,
+          ).strip()
+          manifest_doc = {
+              'schema_version': '0.1',
+              'commit': commit,
+              'files': manifest,
+          }
+          (stage / 'PACKAGE-MANIFEST.json').write_text(
+              json.dumps(manifest_doc, ensure_ascii=False, sort_keys=True, indent=2) + '\n',
+              encoding='utf-8',
+          )
+          print(f'packaged_files={len(manifest)} commit={commit}')
           PY
+      - name: Verify beginner package entrypoints
+        run: |
+          test -f dist/context-optimizer-v0.4/install.py
+          test -f dist/context-optimizer-v0.4/INSTALL.md
+          test -f dist/context-optimizer-v0.4/TESTING.md
+          test -f dist/context-optimizer-v0.4/skills/context-optimizer/SKILL.md
+          test -f dist/context-optimizer-v0.4/skills/context-optimizer/scripts/quick.py
+          test -f dist/context-optimizer-v0.4/PACKAGE-MANIFEST.json
       - uses: actions/upload-artifact@v4
         with:
-          name: context-optimizer-source
-          path: context-optimizer-source.zip
-          retention-days: 7
+          name: context-optimizer-v0.4
+          path: dist/context-optimizer-v0.4/
+          include-hidden-files: true
+          retention-days: 14
           if-no-files-found: error
