@@ -724,7 +724,7 @@ def apply_change(
                 atomic_write_text(target, prepared["after_text"])
                 validate_text_result(target, change)
                 after_hash = hash_path(target)
-                if after_hash != prepared["preview_after_sha256"]:
+                if after_hash != prepared_after_hash(prepared):
                     raise ChangeError(
                         "Фактический результат не совпадает с подтверждённым preview."
                     )
