@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import math
 import sys
 from pathlib import Path
 from typing import Any
@@ -80,7 +81,9 @@ def runtime_from_native(payload: dict[str, Any] | None) -> dict[str, Any]:
     if not isinstance(sessions, list):
         return unknown
 
-    for session in sessions:
+    # Caller selects the newest matching session; never substitute an older
+    # measured session when that latest session has no counters.
+    for session in sessions[:1]:
         if not isinstance(session, dict):
             continue
         context = session.get("context")
@@ -89,7 +92,8 @@ def runtime_from_native(payload: dict[str, Any] | None) -> dict[str, Any]:
         value = context.get("reported_context_tokens")
         measurement_type = context.get("reported_context_measurement_type")
         if not (
-            isinstance(value, (int, float))
+            type(value) in (int, float)
+            and math.isfinite(value)
             and value >= 0
             and measurement_type == "PROVIDER_MEASURED"
         ):
@@ -97,9 +101,9 @@ def runtime_from_native(payload: dict[str, Any] | None) -> dict[str, Any]:
 
         raw_semantics = str(context.get("reported_context_semantics") or "")
         if provider == "codex":
-            current_semantics = {"", "CURRENT_CONTEXT"}
+            current_semantics = {"CURRENT_CONTEXT"}
         elif provider == "antigravity":
-            current_semantics = {"", "CURRENT_CONTEXT", "STATUSLINE_CURRENT_USAGE"}
+            current_semantics = {"CURRENT_CONTEXT"}
         else:
             current_semantics = set()
 

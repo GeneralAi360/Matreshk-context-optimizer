@@ -100,6 +100,12 @@
           ]
         }
       }
+    },
+    "audit_layers": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
     }
   }
 }

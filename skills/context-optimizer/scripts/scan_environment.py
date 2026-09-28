@@ -23,7 +23,7 @@ SKIP_DIRS = {
     ".venv",
     "venv",
     "__pycache__",
-    ".context-optimizer",
+    ".context-optimizer", ".context-optimizer-installer",
 }
 
 def _configure_utf8_stdio() -> None:
@@ -40,12 +40,16 @@ PROJECT_SKILL_ROOTS = (
     ("skills", "package"),
     (".agents/skills", "codex"),
     (".claude/skills", "claude"),
+    (".cursor/skills", "cursor"),
     (".gemini/skills", "gemini"),
 )
 GLOBAL_SKILL_ROOTS = (
     (".agents/skills", "codex"),
     (".claude/skills", "claude"),
+    (".cursor/skills", "cursor"),
     (".gemini/skills", "gemini"),
+    (".gemini/config/skills", "antigravity"),
+    (".gemini/antigravity-cli/skills", "antigravity-cli"),
 )
 
 

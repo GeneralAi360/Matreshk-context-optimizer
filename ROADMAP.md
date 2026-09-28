@@ -107,3 +107,50 @@
 ## Административно
 
 - [ ] При желании переименовать репозиторий `Matreshk-context-optimizer` → `Matreshka-context-optimizer` через GitHub settings.
+
+## v0.4 — Автономная версия для новичков
+**В РАЗРАБОТКЕ. Не считать весь этап завершённым по тестам прежней версии.**
+- [x] Исправление effective/full byte breakdown в нативном детекторе.
+- [x] Проектный отбор сессий до лимита; приведение runtime findings к общему отчёту.
+- [x] Сквозные тесты provider-shaped JSONL → parser → detector → report.
+- [x] Автономное сохранение аудит / Markdown / HTML / STATE без Matreshka Agent.
+- [x] Content-bound предпросмотр и подтверждение блока памяти проекта.
+- [x] Явный finish без ложного PASS по одному уменьшению bytes.
+- [x] Разбор двух файлов пользовательского архива и письменное ревью.
+- [x] Установщик с manifest, предварительным просмотром, обновлением и сохранением прежней копии.
+- [x] Быстрые команды и установленный обработчик Codex / Claude Code / Cursor / Antigravity.
+- [ ] Пользовательская проверка открытия команды внутри каждого настоящего host UI.
+- [x] Hardened change executor: content-bound APPLY, strict params/paths, verified backup, safe rollback.
+- [x] Сквозной change verify: PASS / NEEDS_MORE_DATA / ROLLBACK_RECOMMENDED с записью в ledger.
+- [ ] Production-проверка approved proposal → apply → реальная сопоставимая задача → quality verification на пользовательском проекте.
+- [ ] Автоматическая фиксация завершения сессии там, где host даёт подтверждённый lifecycle hook.
+- [ ] Реальные provider-measured пары before/after и проверки на пользовательском компьютере.
+
+
+## v0.4 — шаг 2: установка и вызов автономного навыка
+
+Реализовано; приёмка кода отдельно от приёмки интерфейсов приложений.
+- Локальный установщик install/update/uninstall/doctor без сети и установки Python-библиотек.
+- Project/user профили Codex, Claude Code, Cursor и Antigravity (IDE/CLI).
+- Один навык с режимами вместо множества однотипных always-on описаний.
+- Content-bound approval, manifest, отказ от перезаписи ручных правок и чужих каталогов.
+- Резервные копии и журнал установки вне индексируемых каталогов skills.
+- Проверки установленного quick entrypoint, перемещённого cwd, путей с пробелами/кириллицей.
+- Русское руководство с терминальными командами, обновлением, удалением и ограничениями.
+
+Не завершено: тест появления команды внутри каждого настоящего host UI; production-пары before/after на пользовательских задачах; доказанная экономия production-токенов.
+## v0.4 — шаг 3: безопасное применение и проверка эффекта
+
+- [x] content-bound `APPLY-...` вместо approval по одному change_id;
+- [x] строгая валидация change/finding IDs, params и validation;
+- [x] запрет mutation служебных областей и symlink/junction paths;
+- [x] backup SHA-256 проверяется до mutation и перед rollback;
+- [x] повторная проверка target непосредственно перед mutation;
+- [x] фактический текстовый результат сверяется с подтверждённым preview;
+- [x] post-apply user edit блокирует rollback;
+- [x] `verify` использует общий before/after quality evaluator;
+- [x] `VERIFIED_KEEP`, `NEEDS_MORE_DATA`, `ROLLBACK_RECOMMENDED`; FAIL не откатывается автоматически;
+- [x] отдельный content-bound `ROLLBACK-...` approval;
+- [x] regression tests для stale approval, backup corruption, symlinks и quality verdicts.
+
+Остаётся реальная пользовательская приёмка на host UI и production before/after.

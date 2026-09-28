@@ -1,0 +1,41 @@
+name: Context source package
+on:
+  push:
+    branches: [main, 'dev/context-optimizer-v0.4-standalone']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Package tracked source only
+        run: |
+          python - <<'PY'
+          import hashlib, json, pathlib, subprocess, zipfile
+          files = subprocess.check_output(['git','ls-files','-z']).decode().split('\0')
+          manifest = {}
+          with zipfile.ZipFile('context-optimizer-source.zip','w',zipfile.ZIP_DEFLATED) as archive:
+              for name in sorted(filter(None,files)):
+                  path=pathlib.Path(name)
+                  if path.is_symlink(): raise SystemExit('Symlink not allowed in package')
+                  data=path.read_bytes()
+                  manifest[name]=hashlib.sha256(data).hexdigest()
+                  info=zipfile.ZipInfo(name, (2026,1,1,0,0,0))
+                  info.compress_type=zipfile.ZIP_DEFLATED
+                  archive.writestr(info,data)
+              archive.writestr('PACKAGE-MANIFEST.json',json.dumps({'commit':subprocess.check_output(['git','rev-parse','HEAD']).decode().strip(),'files':manifest},sort_keys=True,indent=2))
+          print(hashlib.sha256(pathlib.Path('context-optimizer-source.zip').read_bytes()).hexdigest())
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: context-optimizer-source
+          path: context-optimizer-source.zip
+          retention-days: 7
+          if-no-files-found: error

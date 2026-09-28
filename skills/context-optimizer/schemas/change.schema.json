@@ -40,7 +40,8 @@
       "items": {
         "type": "string",
         "pattern": "^CTX-[0-9]{3,}$"
-      }
+      },
+      "minItems": 1
     },
     "approval_required": {
       "const": true
@@ -60,7 +61,21 @@
     },
     "validation": {
       "type": "object",
-      "additionalProperties": true
+      "additionalProperties": false,
+      "properties": {
+        "must_contain": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "must_not_contain": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
     }
   },
   "allOf": [
@@ -84,14 +99,16 @@
             ],
             "properties": {
               "old": {
-                "type": "string"
+                "type": "string",
+                "minLength": 1
               },
               "new": {
                 "type": "string"
               },
               "expected_occurrences": {
                 "type": "integer",
-                "minimum": 1
+                "minimum": 1,
+                "maximum": 1000
               }
             }
           }
@@ -121,8 +138,10 @@
                 "minItems": 1,
                 "items": {
                   "type": "string",
-                  "minLength": 1
-                }
+                  "minLength": 1,
+                  "maxLength": 256
+                },
+                "maxItems": 64
               },
               "value": {}
             }
